@@ -1,8 +1,9 @@
 /* 09:32 15/03/2023 - change triggering comment */
-#pragma GCC optimize ("Ofast")
+//#pragma GCC optimize ("Ofast")
 #if defined(DEBUG_ENABLED)
   #include "dbg.h"
 #endif
+#include <array>
 #include "gaggiuino.h"
 
 SimpleKalmanFilter smoothPressure(0.6f, 0.6f, 0.1f);
@@ -24,116 +25,14 @@ eepromValues_t runningCfg;
 
 SystemState systemState;
 
-LED led;
+//LED led;
 TOF tof;
-
-void setup(void) {
-  LOG_INIT();
-  LOG_INFO("Gaggiuino (fw: %s) booting", AUTO_VERSION);
-
-  // Various pins operation mode handling
-  pinInit();
-  LOG_INFO("Pin init");
-
-  setBoilerOff();  // relayPin LOW
-  setSteamValveRelayOff();
-  setSteamBoilerRelayOff();
-  LOG_INFO("Boiler turned off");
-
-  //Pump
-  setPumpOff();
-  LOG_INFO("Pump turned off");
-
-  // Valve
-  closeValve();
-  LOG_INFO("Valve closed");
-
-  lcdInit();
-  LOG_INFO("LCD Init");
-
-#if defined(DEBUG_ENABLED)
-  // Debug init if enabled
-  dbgInit();
-  LOG_INFO("DBG init");
-#endif
-
-  // Initialise comms library for talking to the ESP mcu
-  espCommsInit();
-
-  // Initialize LED
-  led.begin();
-  led.setColor(9u, 0u, 9u); // WHITE
-  // Init the tof sensor
-  tof.init(currentState);
-
-  // Initialising the saved values or writing defaults if first start
-  eepromInit();
-  runningCfg = eepromGetCurrentValues();
-  LOG_INFO("EEPROM Init");
-
-  cpsInit(runningCfg);
-  LOG_INFO("CPS Init");
-
-  thermocoupleInit();
-  LOG_INFO("Thermocouple Init");
-
-  lcdUploadCfg(runningCfg);
-  LOG_INFO("LCD cfg uploaded");
-
-  adsInit();
-  LOG_INFO("Pressure sensor init");
-
-  // Scales handling
-  scalesInit(runningCfg.scalesF1, runningCfg.scalesF2);
-  LOG_INFO("Scales init");
-
-  // Pump init
-  pumpInit(runningCfg.powerLineFrequency, runningCfg.pumpFlowAtZero);
-  LOG_INFO("Pump init");
-
-  pageValuesRefresh();
-  LOG_INFO("Setup sequence finished");
-
-  // Change LED colour on setup exit.
-  led.setColor(9u, 0u, 9u); // 64171
-
-  iwdcInit();
-}
-
-//##############################################################################################################################
-//############################################________________MAIN______________################################################
-//##############################################################################################################################
-
-
-//Main loop where all the logic is continuously run
-void loop(void) {
-  fillBoiler();
-  if (lcdCurrentPageId != lcdLastCurrentPageId) pageValuesRefresh();
-  lcdListen();
-  sensorsRead();
-  brewDetect();
-  modeSelect();
-  lcdRefresh();
-  espCommsSendSensorData(currentState);
-  sysHealthCheck(SYS_PRESSURE_IDLE);
-}
 
 //##############################################################################################################################
 //#############################################___________SENSORS_READ________##################################################
 //##############################################################################################################################
 
 
-static void sensorsRead(void) {
-  sensorReadSwitches();
-  espCommsReadData();
-  sensorsReadTemperature();
-  sensorsReadWeight();
-  sensorsReadPressure();
-  calculateWeightAndFlow();
-  updateStartupTimer();
-  readTankWaterLevel();
-  doLed();
-}
 
 static void sensorReadSwitches(void) {
   currentState.brewSwitchState = brewState();
@@ -241,36 +140,36 @@ static void calculateWeightAndFlow(void) {
   }
 }
 
-// return the reading in mm of the tank water level.
-static void readTankWaterLevel(void) {
-  if (lcdCurrentPageId == NextionPage::Home) {
-    // static uint32_t tof_timeout = millis();
-    // if (millis() >= tof_timeout) {
-    currentState.waterLvl = tof.readLvl();
-      // tof_timeout = millis() + 500;
-    // }
-  }
-}
+// // return the reading in mm of the tank water level.
+// static void readTankWaterLevel(void) {
+//   if (lcdCurrentPageId == NextionPage::Home) {
+//     // static uint32_t tof_timeout = millis();
+//     // if (millis() >= tof_timeout) {
+//     currentState.waterLvl = tof.readLvl();
+//       // tof_timeout = millis() + 500;
+//     // }
+//   }
+// }
 
-//##############################################################################################################################
-//############################################______PAGE_CHANGE_VALUES_REFRESH_____#############################################
-//##############################################################################################################################
-static void pageValuesRefresh() {
-  // Read the page we're landing in: leaving keyboard page means a value could've changed in it
-  if (lcdLastCurrentPageId == NextionPage::KeyboardNumeric) lcdFetchPage(runningCfg, lcdCurrentPageId, runningCfg.activeProfile);
-  // Or maybe it's a page that needs constant polling
-  else if (lcdLastCurrentPageId == NextionPage::Led) lcdFetchPage(runningCfg, lcdCurrentPageId, runningCfg.activeProfile);
-  // Finally read the page we left, as it could've been changed in place (e.g. boolean toggles)
-  else lcdFetchPage(runningCfg, lcdLastCurrentPageId, runningCfg.activeProfile);
+// //##############################################################################################################################
+// //############################################______PAGE_CHANGE_VALUES_REFRESH_____#############################################
+// //##############################################################################################################################
+// static void pageValuesRefresh() {
+//   // Read the page we're landing in: leaving keyboard page means a value could've changed in it
+//   if (lcdLastCurrentPageId == NextionPage::KeyboardNumeric) lcdFetchPage(runningCfg, lcdCurrentPageId, runningCfg.activeProfile);
+//   // Or maybe it's a page that needs constant polling
+//   else if (lcdLastCurrentPageId == NextionPage::Led) lcdFetchPage(runningCfg, lcdCurrentPageId, runningCfg.activeProfile);
+//   // Finally read the page we left, as it could've been changed in place (e.g. boolean toggles)
+//   else lcdFetchPage(runningCfg, lcdLastCurrentPageId, runningCfg.activeProfile);
 
-  homeScreenScalesEnabled = lcdGetHomeScreenScalesEnabled();
-  // MODE_SELECT should always be LAST
-  selectedOperationalMode = (OPERATION_MODES) lcdGetSelectedOperationalMode();
+//   homeScreenScalesEnabled = lcdGetHomeScreenScalesEnabled();
+//   // MODE_SELECT should always be LAST
+//   selectedOperationalMode = (OPERATION_MODES) lcdGetSelectedOperationalMode();
 
-  updateProfilerPhases();
+//   updateProfilerPhases();
 
-  lcdLastCurrentPageId = lcdCurrentPageId;
-}
+//   lcdLastCurrentPageId = lcdCurrentPageId;
+// }
 
 //#############################################################################################
 //############################____OPERATIONAL_MODE_CONTROL____#################################
@@ -329,172 +228,172 @@ static void modeSelect(void) {
   }
 }
 
-//#############################################################################################
-//################################____LCD_REFRESH_CONTROL___###################################
-//#############################################################################################
+// //#############################################################################################
+// //################################____LCD_REFRESH_CONTROL___###################################
+// //#############################################################################################
 
-static void lcdRefresh(void) {
-  uint16_t tempDecimal;
+// static void lcdRefresh(void) {
+//   uint16_t tempDecimal;
 
-  if (millis() > pageRefreshTimer) {
-    /*LCD pressure output, as a measure to beautify the graphs locking the live pressure read for the LCD alone*/
-    #ifdef BEAUTIFY_GRAPH
-      lcdSetPressure(currentState.smoothedPressure * 10.f);
-    #else
-      lcdSetPressure(
-        currentState.pressure > 0.f
-          ? currentState.pressure * 10.f
-          : 0.f
-      );
-    #endif
+//   if (millis() > pageRefreshTimer) {
+//     /*LCD pressure output, as a measure to beautify the graphs locking the live pressure read for the LCD alone*/
+//     #ifdef BEAUTIFY_GRAPH
+//       lcdSetPressure(currentState.smoothedPressure * 10.f);
+//     #else
+//       lcdSetPressure(
+//         currentState.pressure > 0.f
+//           ? currentState.pressure * 10.f
+//           : 0.f
+//       );
+//     #endif
 
-    /*LCD temp output*/
-    float brewTempSetPoint = ACTIVE_PROFILE(runningCfg).setpoint + runningCfg.offsetTemp;
-    // float liveTempWithOffset = currentState.temperature - runningCfg.offsetTemp;
-    currentState.waterTemperature = (currentState.temperature > (float)ACTIVE_PROFILE(runningCfg).setpoint && currentState.brewSwitchState)
-      ? currentState.temperature / (float)brewTempSetPoint + (float)ACTIVE_PROFILE(runningCfg).setpoint
-      : currentState.temperature;
+//     /*LCD temp output*/
+//     float brewTempSetPoint = ACTIVE_PROFILE(runningCfg).setpoint + runningCfg.offsetTemp;
+//     // float liveTempWithOffset = currentState.temperature - runningCfg.offsetTemp;
+//     currentState.waterTemperature = (currentState.temperature > (float)ACTIVE_PROFILE(runningCfg).setpoint && currentState.brewSwitchState)
+//       ? currentState.temperature / (float)brewTempSetPoint + (float)ACTIVE_PROFILE(runningCfg).setpoint
+//       : currentState.temperature;
 
-    lcdSetTemperature(std::floor((uint16_t)currentState.waterTemperature));
+//     lcdSetTemperature(std::floor((uint16_t)currentState.waterTemperature));
 
-    /*LCD weight & temp & water lvl output*/
-    switch (lcdCurrentPageId) {
-      case NextionPage::Home:
-        // temp decimal handling
-        tempDecimal = (currentState.waterTemperature - (uint16_t)currentState.waterTemperature) * 10;
-        lcdSetTemperatureDecimal(tempDecimal);
-        // water lvl
-        lcdSetTankWaterLvl(currentState.waterLvl);
-        //weight
-        if (homeScreenScalesEnabled) lcdSetWeight(currentState.weight);
-        break;
-      case NextionPage::BrewGraph:
-      case NextionPage::BrewManual:
-        // temp decimal handling
-        tempDecimal = (currentState.waterTemperature - (uint16_t)currentState.waterTemperature) * 10;
-        lcdSetTemperatureDecimal(tempDecimal);
-        // If the weight output is a negative value lower than -0.8 you might want to tare again before extraction starts.
-        if (currentState.shotWeight) lcdSetWeight(currentState.shotWeight > -0.8f ? currentState.shotWeight : -0.9f);
-        /*LCD flow output*/
-        lcdSetFlow( currentState.smoothedPumpFlow * 10.f);
-        break;
-      default:
-        break; // don't push needless data on other pages
-    }
+//     /*LCD weight & temp & water lvl output*/
+//     switch (lcdCurrentPageId) {
+//       case NextionPage::Home:
+//         // temp decimal handling
+//         tempDecimal = (currentState.waterTemperature - (uint16_t)currentState.waterTemperature) * 10;
+//         lcdSetTemperatureDecimal(tempDecimal);
+//         // water lvl
+//         lcdSetTankWaterLvl(currentState.waterLvl);
+//         //weight
+//         if (homeScreenScalesEnabled) lcdSetWeight(currentState.weight);
+//         break;
+//       case NextionPage::BrewGraph:
+//       case NextionPage::BrewManual:
+//         // temp decimal handling
+//         tempDecimal = (currentState.waterTemperature - (uint16_t)currentState.waterTemperature) * 10;
+//         lcdSetTemperatureDecimal(tempDecimal);
+//         // If the weight output is a negative value lower than -0.8 you might want to tare again before extraction starts.
+//         if (currentState.shotWeight) lcdSetWeight(currentState.shotWeight > -0.8f ? currentState.shotWeight : -0.9f);
+//         /*LCD flow output*/
+//         lcdSetFlow( currentState.smoothedPumpFlow * 10.f);
+//         break;
+//       default:
+//         break; // don't push needless data on other pages
+//     }
 
-  #ifdef DEBUG_ENABLED
-    lcdShowDebug(readTempSensor(), getAdsError());
-  #endif
+//   #ifdef DEBUG_ENABLED
+//     lcdShowDebug(readTempSensor(), getAdsError());
+//   #endif
 
-    /*LCD timer and warmup*/
-    if (brewActive) {
-      lcdSetBrewTimer((millis() > brewingTimer) ? (int)((millis() - brewingTimer) / 1000) : 0);
-      lcdBrewTimerStart(); // nextion timer start
-      lcdWarmupStateStop(); // Flagging warmup notification on Nextion needs to stop (if enabled)
-    } else {
-      lcdBrewTimerStop(); // nextion timer stop
-    }
+//     /*LCD timer and warmup*/
+//     if (brewActive) {
+//       lcdSetBrewTimer((millis() > brewingTimer) ? (int)((millis() - brewingTimer) / 1000) : 0);
+//       lcdBrewTimerStart(); // nextion timer start
+//       lcdWarmupStateStop(); // Flagging warmup notification on Nextion needs to stop (if enabled)
+//     } else {
+//       lcdBrewTimerStop(); // nextion timer stop
+//     }
 
-    pageRefreshTimer = millis() + REFRESH_SCREEN_EVERY;
-  }
-}
-//#############################################################################################
-//###################################____SAVE_BUTTON____#######################################
-//#############################################################################################
-void tryEepromWrite(const eepromValues_t &eepromValues) {
-  bool success = eepromWrite(eepromValues);
-  watchdogReload(); // reload the watchdog timer on expensive operations
-  if (success) {
-    lcdShowPopup("Update successful!");
-  } else {
-    lcdShowPopup("Data out of range!");
-  }
-}
+//     pageRefreshTimer = millis() + REFRESH_SCREEN_EVERY;
+//   }
+// }
+// //#############################################################################################
+// //###################################____SAVE_BUTTON____#######################################
+// //#############################################################################################
+// void tryEepromWrite(const eepromValues_t &eepromValues) {
+//   bool success = eepromWrite(eepromValues);
+//   watchdogReload(); // reload the watchdog timer on expensive operations
+//   if (success) {
+//     lcdShowPopup("Update successful!");
+//   } else {
+//     lcdShowPopup("Data out of range!");
+//   }
+// }
 
-void lcdSwitchActiveToStoredProfile(const eepromValues_t & storedSettings) {
-  runningCfg.activeProfile = lcdGetSelectedProfile();
-  ACTIVE_PROFILE(runningCfg) = storedSettings.profiles[runningCfg.activeProfile];
-  updateProfilerPhases();
-  lcdUploadProfile(runningCfg);
-}
+// void lcdSwitchActiveToStoredProfile(const eepromValues_t & storedSettings) {
+//   runningCfg.activeProfile = lcdGetSelectedProfile();
+//   ACTIVE_PROFILE(runningCfg) = storedSettings.profiles[runningCfg.activeProfile];
+//   updateProfilerPhases();
+//   lcdUploadProfile(runningCfg);
+// }
 
-// Save the desired temp values to EEPROM
-void lcdSaveSettingsTrigger(void) {
-  LOG_VERBOSE("Saving values to EEPROM");
+// // Save the desired temp values to EEPROM
+// void lcdSaveSettingsTrigger(void) {
+//   LOG_VERBOSE("Saving values to EEPROM");
 
-  eepromValues_t eepromCurrentValues = eepromGetCurrentValues();
-  lcdFetchPage(eepromCurrentValues, lcdCurrentPageId, runningCfg.activeProfile);
-  tryEepromWrite(eepromCurrentValues);
-}
+//   eepromValues_t eepromCurrentValues = eepromGetCurrentValues();
+//   lcdFetchPage(eepromCurrentValues, lcdCurrentPageId, runningCfg.activeProfile);
+//   tryEepromWrite(eepromCurrentValues);
+// }
 
-void lcdSaveProfileTrigger(void) {
-  LOG_VERBOSE("Saving profile to EEPROM");
+// void lcdSaveProfileTrigger(void) {
+//   LOG_VERBOSE("Saving profile to EEPROM");
 
-  eepromValues_t eepromCurrentValues = eepromGetCurrentValues();
-  lcdFetchCurrentProfile(eepromCurrentValues);
-  tryEepromWrite(eepromCurrentValues);
-}
+//   eepromValues_t eepromCurrentValues = eepromGetCurrentValues();
+//   lcdFetchCurrentProfile(eepromCurrentValues);
+//   tryEepromWrite(eepromCurrentValues);
+// }
 
-void lcdResetSettingsTrigger(void) {
-  tryEepromWrite(eepromGetDefaultValues());
-}
+// void lcdResetSettingsTrigger(void) {
+//   tryEepromWrite(eepromGetDefaultValues());
+// }
 
-void lcdLoadDefaultProfileTrigger(void) {
-  lcdSwitchActiveToStoredProfile(eepromGetDefaultValues());
+// void lcdLoadDefaultProfileTrigger(void) {
+//   lcdSwitchActiveToStoredProfile(eepromGetDefaultValues());
 
-  lcdShowPopup("Profile loaded!");
-}
+//   lcdShowPopup("Profile loaded!");
+// }
 
-void lcdScalesTareTrigger(void) {
-  LOG_VERBOSE("Tare scales");
-  if (currentState.scalesPresent) currentState.tarePending = true;
-}
+// void lcdScalesTareTrigger(void) {
+//   LOG_VERBOSE("Tare scales");
+//   if (currentState.scalesPresent) currentState.tarePending = true;
+// }
 
-void lcdHomeScreenScalesTrigger(void) {
-  LOG_VERBOSE("Scales enabled or disabled");
-  homeScreenScalesEnabled = lcdGetHomeScreenScalesEnabled();
-}
+// void lcdHomeScreenScalesTrigger(void) {
+//   LOG_VERBOSE("Scales enabled or disabled");
+//   homeScreenScalesEnabled = lcdGetHomeScreenScalesEnabled();
+// }
 
-void lcdBrewGraphScalesTareTrigger(void) {
-  LOG_VERBOSE("Predictive scales tare action completed!");
-  if (currentState.scalesPresent) {
-    currentState.tarePending = true;
-  }
-  else {
-    currentState.shotWeight = 0.f;
-    predictiveWeight.setIsForceStarted(true);
-  }
-}
+// void lcdBrewGraphScalesTareTrigger(void) {
+//   LOG_VERBOSE("Predictive scales tare action completed!");
+//   if (currentState.scalesPresent) {
+//     currentState.tarePending = true;
+//   }
+//   else {
+//     currentState.shotWeight = 0.f;
+//     predictiveWeight.setIsForceStarted(true);
+//   }
+// }
 
-void lcdRefreshElementsTrigger(void) {
+// void lcdRefreshElementsTrigger(void) {
 
-  eepromValues_t eepromCurrentValues = eepromGetCurrentValues();
+//   eepromValues_t eepromCurrentValues = eepromGetCurrentValues();
 
-  switch (lcdCurrentPageId) {
-    case NextionPage::BrewPreinfusion:
-      ACTIVE_PROFILE(eepromCurrentValues).preinfusionFlowState = lcdGetPreinfusionFlowState();
-      break;
-    case NextionPage::BrewProfiling:
-      ACTIVE_PROFILE(eepromCurrentValues).mfProfileState = lcdGetProfileFlowState();
-      break;
-    case NextionPage::BrewTransitionProfile:
-      ACTIVE_PROFILE(eepromCurrentValues).tpType = lcdGetTransitionFlowState();
-      break;
-    default:
-      lcdShowPopup("Nope!");
-      break;
-  }
+//   switch (lcdCurrentPageId) {
+//     case NextionPage::BrewPreinfusion:
+//       ACTIVE_PROFILE(eepromCurrentValues).preinfusionFlowState = lcdGetPreinfusionFlowState();
+//       break;
+//     case NextionPage::BrewProfiling:
+//       ACTIVE_PROFILE(eepromCurrentValues).mfProfileState = lcdGetProfileFlowState();
+//       break;
+//     case NextionPage::BrewTransitionProfile:
+//       ACTIVE_PROFILE(eepromCurrentValues).tpType = lcdGetTransitionFlowState();
+//       break;
+//     default:
+//       lcdShowPopup("Nope!");
+//       break;
+//   }
 
-  // Make the necessary changes
-  uploadPageCfg(eepromCurrentValues, systemState);
-  // refresh the screen elements
-  pageValuesRefresh();
-}
+//   // Make the necessary changes
+//   uploadPageCfg(eepromCurrentValues, systemState);
+//   // refresh the screen elements
+//   pageValuesRefresh();
+// }
 
-void lcdQuickProfileSwitch(void) {
-  lcdSwitchActiveToStoredProfile(eepromGetCurrentValues());
-  lcdShowPopup("Profile switched!");
-}
+// void lcdQuickProfileSwitch(void) {
+//   lcdSwitchActiveToStoredProfile(eepromGetCurrentValues());
+//   lcdShowPopup("Profile switched!");
+// }
 
 //#############################################################################################
 //###############################____PROFILING_CONTROL____#####################################
@@ -966,33 +865,142 @@ static void cpsInit(eepromValues_t &eepromValues) {
   }
 }
 
-static void doLed(void) {
-  if (runningCfg.ledDisco && brewActive) {
-    switch(lcdCurrentPageId) {
-      case NextionPage::BrewGraph:
-      case NextionPage::BrewManual:
-        led.setDisco(led.CLASSIC);
-        break;
-      case NextionPage::Flush:
-        led.setDisco(led.STROBE);
-        break;
-      case NextionPage::Descale:
-        led.setDisco(led.DESCALE);
-        break;
-      default:
-        led.setColor(0, 0, 0);
-        break;
-    }
-  } else {
-    switch(lcdCurrentPageId) {
-      case NextionPage::Led:
-        static uint32_t timer = millis();
-        if (millis() > timer) {
-          timer = millis() + 100u;
-          lcdFetchLed(runningCfg);
-        }
-      default: // intentionally fall through
-        led.setColor(runningCfg.ledR, runningCfg.ledG, runningCfg.ledB);
-    }
-  }
+// static void doLed(void) {
+//   if (runningCfg.ledDisco && brewActive) {
+//     switch(lcdCurrentPageId) {
+//       case NextionPage::BrewGraph:
+//       case NextionPage::BrewManual:
+//         led.setDisco(led.CLASSIC);
+//         break;
+//       case NextionPage::Flush:
+//         led.setDisco(led.STROBE);
+//         break;
+//       case NextionPage::Descale:
+//         led.setDisco(led.DESCALE);
+//         break;
+//       default:
+//         led.setColor(0, 0, 0);
+//         break;
+//     }
+//   } else {
+//     switch(lcdCurrentPageId) {
+//       case NextionPage::Led:
+//         static uint32_t timer = millis();
+//         if (millis() > timer) {
+//           timer = millis() + 100u;
+//           lcdFetchLed(runningCfg);
+//         }
+//       default: // intentionally fall through
+//         led.setColor(runningCfg.ledR, runningCfg.ledG, runningCfg.ledB);
+//     }
+//   }
+// }
+
+
+
+void setup(void) {
+  LOG_INIT();
+  LOG_INFO("Gaggiuino (fw: %s) booting", AUTO_VERSION);
+
+  // Various pins operation mode handling
+  pinInit();
+  LOG_INFO("Pin init");
+
+  setBoilerOff();  // relayPin LOW
+  setSteamValveRelayOff();
+  setSteamBoilerRelayOff();
+  LOG_INFO("Boiler turned off");
+
+  //Pump
+  setPumpOff();
+  LOG_INFO("Pump turned off");
+
+  // Valve
+  closeValve();
+  LOG_INFO("Valve closed");
+
+  //lcdInit();
+  //LOG_INFO("LCD Init");
+
+#if defined(DEBUG_ENABLED)
+  // Debug init if enabled
+  dbgInit();
+  LOG_INFO("DBG init");
+#endif
+
+  // Initialise comms library for talking to the ESP mcu
+  //espCommsInit();
+
+  // Initialize LED
+ // led.begin();
+  //led.setColor(9u, 0u, 9u); // WHITE
+  // Init the tof sensor
+  tof.init(currentState);
+
+  // Initialising the saved values or writing defaults if first start
+  eepromInit();
+  runningCfg = eepromGetCurrentValues();
+  LOG_INFO("EEPROM Init");
+
+  cpsInit(runningCfg);
+  LOG_INFO("CPS Init");
+
+  thermocoupleInit();
+  LOG_INFO("Thermocouple Init");
+
+  //lcdUploadCfg(runningCfg);
+  //LOG_INFO("LCD cfg uploaded");
+
+  adsInit();
+  LOG_INFO("Pressure sensor init");
+
+  // Scales handling
+  scalesInit(runningCfg.scalesF1, runningCfg.scalesF2);
+  LOG_INFO("Scales init");
+
+  // Pump init
+  pumpInit(runningCfg.powerLineFrequency, runningCfg.pumpFlowAtZero);
+  LOG_INFO("Pump init");
+
+  pageValuesRefresh();
+  LOG_INFO("Setup sequence finished");
+
+  // Change LED colour on setup exit.
+  //led.setColor(9u, 0u, 9u); // 64171
+
+  iwdcInit();
+}
+static void sensorsRead(void) {
+  sensorReadSwitches();
+  espCommsReadData();
+  sensorsReadTemperature();
+  sensorsReadWeight();
+  sensorsReadPressure();
+  calculateWeightAndFlow();
+  updateStartupTimer();
+  readTankWaterLevel();
+  doLed();
+}
+
+//##############################################################################################################################
+//############################################________________MAIN______________################################################
+//##############################################################################################################################
+
+
+//Main loop where all the logic is continuously run
+void loop(void) {
+  fillBoiler();
+  //if (lcdCurrentPageId != lcdLastCurrentPageId) pageValuesRefresh();
+  //lcdListen();
+  sensorsRead();
+  brewDetect();
+  modeSelect();
+ //lcdRefresh();
+  //espCommsSendSensorData(currentState);
+  sysHealthCheck(SYS_PRESSURE_IDLE);
+}
+
+int main (int arc, char ** argv)
+{
+  return 0;
 }

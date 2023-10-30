@@ -2,7 +2,7 @@
 #include "pressure_sensor.h"
 #include "pindef.h"
 #include "ADS1X15.h"
-#include "../lcd/lcd.h"
+//#include "../lcd/lcd.h"
 #include "../log.h"
 #include "i2c_bus_reset.h"
 

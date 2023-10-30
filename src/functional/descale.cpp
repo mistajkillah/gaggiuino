@@ -2,7 +2,7 @@
 #include "descale.h"
 #include "just_do_coffee.h"
 #include "../peripherals/internal_watchdog.h"
-#include "../lcd/lcd.h"
+//#include "../lcd/lcd.h"
 
 DescalingState descalingState = DescalingState::IDLE;
 

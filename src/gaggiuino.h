@@ -1,13 +1,14 @@
 /* 09:32 15/03/2023 - change triggering comment */
 #ifndef GAGGIUINO_H
 #define GAGGIUINO_H
-
+#include <math.h>
+#include <stdint.h>
 #include <Arduino.h>
 #include <SimpleKalmanFilter.h>
 
 #include "log.h"
 #include "eeprom_data/eeprom_data.h"
-#include "lcd/lcd.h"
+//#include "lcd/lcd.h"
 #include "peripherals/internal_watchdog.h"
 #include "peripherals/pump.h"
 #include "peripherals/pressure_sensor.h"
@@ -21,7 +22,7 @@
 #include "functional/predictive_weight.h"
 #include "profiling_phases.h"
 #include "peripherals/esp_comms.h"
-#include "peripherals/led.h"
+//#include "peripherals/led.h"
 #include "peripherals/tof.h"
 
 // Define some const values

@@ -3,7 +3,7 @@
 #define I2C_BUS_RESET_H
 
 #include <Arduino.h>
-#include <Wire.h>
+//#include <Wire.h>
 
 /**
 * This routine turns off the I2C bus and clears it

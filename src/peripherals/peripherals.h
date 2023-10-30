@@ -2,7 +2,7 @@
 #ifndef PERIPHERALS_H
 #define PERIPHERALS_H
 
-#include "pindef.h"
+#include "../pindef.h"
 #include "peripherals.h"
 #include <Arduino.h>
 
