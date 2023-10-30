@@ -4,6 +4,30 @@
   #include "dbg.h"
 #endif
 #include <array>
+
+#include <math.h>
+#include <stdint.h>
+#include <Arduino.h>
+#include <SimpleKalmanFilter.h>
+
+#include "log.h"
+#include "eeprom_data/eeprom_data.h"
+//#include "lcd/lcd.h"
+#include "peripherals/internal_watchdog.h"
+#include "peripherals/pump.h"
+#include "peripherals/pressure_sensor.h"
+#include "peripherals/scales.h"
+#include "peripherals/peripherals.h"
+#include "peripherals/thermocouple.h"
+#include "sensors_state.h"
+#include "system_state.h"
+#include "functional/descale.h"
+#include "functional/just_do_coffee.h"
+#include "functional/predictive_weight.h"
+#include "profiling_phases.h"
+#include "peripherals/esp_comms.h"
+//#include "peripherals/led.h"
+//#include "peripherals/tof.h"
 #include "gaggiuino.h"
 
 SimpleKalmanFilter smoothPressure(0.6f, 0.6f, 0.1f);
@@ -26,7 +50,7 @@ eepromValues_t runningCfg;
 SystemState systemState;
 
 //LED led;
-TOF tof;
+//TOF tof;
 
 //##############################################################################################################################
 //#############################################___________SENSORS_READ________##################################################
@@ -51,16 +75,16 @@ static void sensorsReadWeight(void) {
   uint32_t elapsedTime = millis() - scalesTimer;
 
   if (elapsedTime > GET_SCALES_READ_EVERY) {
-    currentState.scalesPresent = scalesIsPresent();
+    //currentState.scalesPresent = scalesIsPresent();
     if (currentState.scalesPresent) {
       if (currentState.tarePending) {
-        scalesTare();
+        //scalesTare();
         weightMeasurements.clear();
-        weightMeasurements.add(scalesGetWeight());
+       // weightMeasurements.add(scalesGetWeight());
         currentState.tarePending = false;
       }
       else {
-        weightMeasurements.add(scalesGetWeight());
+        //weightMeasurements.add(scalesGetWeight());
       }
       currentState.weight = weightMeasurements.latest().value;
 
@@ -214,7 +238,7 @@ static void modeSelect(void) {
       if (!currentState.steamSwitchState) {
         brewActive ? flushActivated() : flushDeactivated();
         steamCtrl(runningCfg, currentState);
-        pageValuesRefresh();
+        //pageValuesRefresh();
       }
       break;
     case OPERATION_MODES::OPMODE_descale:
@@ -223,7 +247,7 @@ static void modeSelect(void) {
       deScale(runningCfg, currentState);
       break;
     default:
-      pageValuesRefresh();
+      //pageValuesRefresh();
       break;
   }
 }
@@ -408,7 +432,8 @@ static void updateProfilerPhases(void) {
   }
 
   //update global stop conditions (currently only stopOnWeight is configured in nextion)
-  profile.globalStopConditions = GlobalStopConditions{ .weight=shotTarget };
+  profile.globalStopConditions = GlobalStopConditions();//{ .time=-1, .weight=shotTarget, .waterPumped=-1};
+  profile.globalStopConditions.weight=shotTarget;
 
   profile.clear();
 
@@ -560,7 +585,7 @@ void insertRampPhaseIfNeeded(size_t rampPhaseIndex) {
     .type           = targetPhase.type,
     .target         = Transition(targetValue, rampCurve, rampTime * 1000),
     .restriction    = -1,
-    .stopConditions = PhaseStopConditions{ .time=rampTime * 1000 }
+    .stopConditions = { rampTime * 1000 ,-1,-1,-1,-1,-1,-1}
   }, rampPhaseIndex);
 }
 
@@ -575,13 +600,21 @@ void addPressurePhase(Transition pressure, float flowRestriction, int timeMs, fl
 void addFlowPhase(Transition flow, float pressureRestriction, int timeMs, float pressureAbove, float pressureBelow, float shotWeight, float isWaterPumped) {
   addPhase(PHASE_TYPE::PHASE_TYPE_FLOW, flow, pressureRestriction, timeMs, pressureAbove, pressureBelow, shotWeight, isWaterPumped);
 }
-
+/*
+PhaseStopConditions(  long time = -1,
+  float pressureAbove = -1,
+  float pressureBelow = -1,
+  float flowAbove = -1,
+  float flowBelow = -1,
+  float weight = -1, //example: when pushed weight >0 stop this phase)
+  float waterPumpedInPhase = -1)
+  */
 void addPhase(PHASE_TYPE type, Transition target, float restriction, int timeMs, float pressureAbove, float pressureBelow, float shotWeight, float isWaterPumped) {
   profile.addPhase(Phase {
     .type           = type,
     .target         = target,
     .restriction    = restriction,
-    .stopConditions = PhaseStopConditions{ .time=timeMs, .pressureAbove=pressureAbove, .pressureBelow=pressureBelow, .weight=shotWeight, .waterPumpedInPhase=isWaterPumped }
+    .stopConditions = PhaseStopConditions(timeMs,pressureAbove, pressureBelow, -1,-1, shotWeight, isWaterPumped )
   });
 }
 
@@ -594,7 +627,7 @@ static void profiling(void) {
     phaseProfiler.updatePhase(timeInShot, currentState);
     CurrentPhase& currentPhase = phaseProfiler.getCurrentPhase();
     ShotSnapshot shotSnapshot = buildShotSnapshot(timeInShot, currentState, currentPhase);
-    espCommsSendShotData(shotSnapshot, 100);
+    //espCommsSendShotData(shotSnapshot, 100);
 
     if (phaseProfiler.isFinished()) {
       setPumpOff();
@@ -644,7 +677,7 @@ static void brewDetect(void) {
   static bool paramsReset = true;
   if (currentState.brewSwitchState) {
     if (!paramsReset) {
-      lcdWakeUp();
+      //lcdWakeUp();
       brewParamsReset();
       paramsReset = true;
       brewActive = true;
@@ -683,12 +716,12 @@ static bool sysReadinessCheck(void) {
     return false;
   }
   // If there's not enough water in the tank
-  if ((lcdCurrentPageId != NextionPage::BrewGraph || lcdCurrentPageId != NextionPage::BrewManual)
-  && currentState.waterLvl < MIN_WATER_LVL)
-  {
-    lcdShowPopup("Fill the water tank!");
-    return false;
-  }
+  // if ((lcdCurrentPageId != NextionPage::BrewGraph || lcdCurrentPageId != NextionPage::BrewManual)
+  // && currentState.waterLvl < MIN_WATER_LVL)
+  // {
+  //   lcdShowPopup("Fill the water tank!");
+  //   return false;
+  // }
 
   return true;
 }
@@ -709,7 +742,7 @@ static inline void sysHealthCheck(float pressureThreshold) {
     setSteamBoilerRelayOff();
     if (millis() > thermoTimer) {
       LOG_ERROR("Cannot read temp from thermocouple (last read: %.1lf)!", static_cast<double>(currentState.temperature));
-      currentState.steamSwitchState ? lcdShowPopup("COOLDOWN") : lcdShowPopup("TEMP READ ERROR"); // writing a LCD message
+      //currentState.steamSwitchState ? lcdShowPopup("COOLDOWN") : lcdShowPopup("TEMP READ ERROR"); // writing a LCD message
       currentState.temperature  = thermocoupleRead() - runningCfg.offsetTemp;  // Making sure we're getting a value
       thermoTimer = millis() + GET_KTYPE_READ_EVERY;
     }
@@ -719,7 +752,7 @@ static inline void sysHealthCheck(float pressureThreshold) {
   while (currentState.isSteamForgottenON) {
     //Reloading the watchdog timer, if this function fails to run MCU is rebooted
     watchdogReload();
-    lcdShowPopup("TURN STEAM OFF NOW!");
+    //lcdShowPopup("TURN STEAM OFF NOW!");
     setPumpOff();
     setBoilerOff();
     setSteamBoilerRelayOff();
@@ -752,7 +785,7 @@ static inline void sysHealthCheck(float pressureThreshold) {
           break;
         default:
           sensorsRead();
-          lcdShowPopup("Releasing pressure!");
+          //lcdShowPopup("Releasing pressure!");
           setPumpOff();
           setBoilerOff();
           setSteamValveRelayOff();
@@ -774,7 +807,7 @@ static inline void sysHealthCheck(float pressureThreshold) {
       int countdown = (int)(systemHealthTimer-millis())/1000;
       unsigned int check = snprintf(tmp, sizeof(tmp), "Dropping beats in: %i", countdown);
       if (check > 0 && check <= sizeof(tmp)) {
-        lcdShowPopup(tmp);
+        //lcdShowPopup(tmp);
       }
     }
   }
@@ -803,7 +836,7 @@ static void fillBoiler(void) {
     fillBoilerUntilThreshod(getTimeSinceInit());
   }
   else if (isSwitchOn()) {
-    lcdShowPopup("Brew Switch ON!");
+    //lcdShowPopup("Brew Switch ON!");
   }
 #else
   systemState.startupInitFinished = true;
@@ -811,7 +844,7 @@ static void fillBoiler(void) {
 }
 
 static bool isBoilerFillPhase(unsigned long elapsedTime) {
-  return lcdCurrentPageId == NextionPage::Home && elapsedTime >= BOILER_FILL_START_TIME;
+  //return lcdCurrentPageId == NextionPage::Home && elapsedTime >= BOILER_FILL_START_TIME;
 }
 
 static bool isBoilerFull(unsigned long elapsedTime) {
@@ -827,7 +860,7 @@ static bool isBoilerFull(unsigned long elapsedTime) {
 
 // Checks if Brew switch is ON
 static bool isSwitchOn(void) {
-  return currentState.brewSwitchState && lcdCurrentPageId == NextionPage::Home;
+  return currentState.brewSwitchState;// && lcdCurrentPageId == NextionPage::Home;
 }
 
 static void fillBoilerUntilThreshod(unsigned long elapsedTime) {
@@ -843,13 +876,13 @@ static void fillBoilerUntilThreshod(unsigned long elapsedTime) {
     return;
   }
 
-  lcdShowPopup("Filling boiler!");
+  //lcdShowPopup("Filling boiler!");
   openValve();
   setPumpToRawValue(35);
 }
 
 static void updateStartupTimer(void) {
-  lcdSetUpTime(getTimeSinceInit() / 1000);
+  //lcdSetUpTime(getTimeSinceInit() / 1000);
 }
 
 static void cpsInit(eepromValues_t &eepromValues) {
@@ -935,11 +968,11 @@ void setup(void) {
  // led.begin();
   //led.setColor(9u, 0u, 9u); // WHITE
   // Init the tof sensor
-  tof.init(currentState);
+  //tof.init(currentState);
 
   // Initialising the saved values or writing defaults if first start
-  eepromInit();
-  runningCfg = eepromGetCurrentValues();
+  //eepromInit();
+  //runningCfg = eepromGetCurrentValues();
   LOG_INFO("EEPROM Init");
 
   cpsInit(runningCfg);
@@ -955,14 +988,14 @@ void setup(void) {
   LOG_INFO("Pressure sensor init");
 
   // Scales handling
-  scalesInit(runningCfg.scalesF1, runningCfg.scalesF2);
-  LOG_INFO("Scales init");
+  //scalesInit(runningCfg.scalesF1, runningCfg.scalesF2);
+  //LOG_INFO("Scales init");
 
   // Pump init
   pumpInit(runningCfg.powerLineFrequency, runningCfg.pumpFlowAtZero);
   LOG_INFO("Pump init");
 
-  pageValuesRefresh();
+  //pageValuesRefresh();
   LOG_INFO("Setup sequence finished");
 
   // Change LED colour on setup exit.
@@ -972,14 +1005,14 @@ void setup(void) {
 }
 static void sensorsRead(void) {
   sensorReadSwitches();
-  espCommsReadData();
+  //espCommsReadData();
   sensorsReadTemperature();
   sensorsReadWeight();
   sensorsReadPressure();
   calculateWeightAndFlow();
   updateStartupTimer();
-  readTankWaterLevel();
-  doLed();
+  //readTankWaterLevel();
+  //doLed();
 }
 
 //##############################################################################################################################

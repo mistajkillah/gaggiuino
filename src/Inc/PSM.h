@@ -9,7 +9,10 @@ public:
   PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode = RISING, unsigned char divider = 1, unsigned char interruptMinTimeDiff = 0);
 
   void set(unsigned int value);
-
+  void initTimer(int,int)
+  {
+    return ;
+  }
   long getCounter();
   void resetCounter();
 

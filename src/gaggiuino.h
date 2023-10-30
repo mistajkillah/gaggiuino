@@ -1,29 +1,7 @@
 /* 09:32 15/03/2023 - change triggering comment */
 #ifndef GAGGIUINO_H
 #define GAGGIUINO_H
-#include <math.h>
-#include <stdint.h>
-#include <Arduino.h>
-#include <SimpleKalmanFilter.h>
 
-#include "log.h"
-#include "eeprom_data/eeprom_data.h"
-//#include "lcd/lcd.h"
-#include "peripherals/internal_watchdog.h"
-#include "peripherals/pump.h"
-#include "peripherals/pressure_sensor.h"
-#include "peripherals/scales.h"
-#include "peripherals/peripherals.h"
-#include "peripherals/thermocouple.h"
-#include "sensors_state.h"
-#include "system_state.h"
-#include "functional/descale.h"
-#include "functional/just_do_coffee.h"
-#include "functional/predictive_weight.h"
-#include "profiling_phases.h"
-#include "peripherals/esp_comms.h"
-//#include "peripherals/led.h"
-#include "peripherals/tof.h"
 
 // Define some const values
 #if defined SINGLE_BOARD
@@ -91,5 +69,50 @@ float previousSmoothedPressure;
 float previousSmoothedPumpFlow;
 
 static void sysHealthCheck(float pressureThreshold);
+static void lcdShowPopup(char *);
+static void manualFlowControl();
+static void lcdSetUpTime(float);
+static void espCommsReadData();
+static void pageValuesRefresh();
+static bool sysReadinessCheck(void) ;
+static void manualFlowControl(void);
+static void updateProfilerPhases(void) ;
+static bool isBoilerFillPhase(unsigned long elapsedTime);
+static bool isSwitchOn(void);
+static void readTankWaterLevel();
+static void brewParamsReset();
+void addPhase(PHASE_TYPE type, Transition target, float restriction, int timeMs, float pressureAbove, float pressureBelow, float shotWeight, float isWaterPumped) ;
+void addFlowPhase(Transition flow, float pressureRestriction, int timeMs, float pressureAbove, float pressureBelow, float shotWeight, float isWaterPumped);
+void addPressurePhase(Transition pressure, float flowRestriction, int timeMs, float pressureAbove, float pressureBelow, float shotWeight, float isWaterPumped);
+void addFillBasketPhase(float flowRate);
+static void profiling();
+void addPreinfusionPhases();
+void addSoakPhase();
+void insertRampPhaseIfNeeded(size_t);
+void addMainExtractionPhasesAndRamp();
+float lcdGetManualFlowVol()
+{
+  return 0; //todo
+}
 
+
+enum class NextionPage {
+  /* 00 */ Home,
+  /* 01 */ BrewPreinfusion,
+  /* 02 */ BrewSoak,
+  /* 03 */ BrewProfiling,
+  /* 04 */ BrewManual,
+  /* 05 */ Flush,
+  /* 06 */ Descale,
+  /* 07 */ SettingsBoiler,
+  /* 08 */ SettingsSystem,
+  /* 09 */ BrewGraph,
+  /* 0A */ BrewMore,
+  /* 0B */ ShotSettings,
+  /* 0C */ BrewTransitionProfile,
+  /* 0D */ GraphPreview,
+  /* 0E */ KeyboardNumeric,
+  /* 0F */ Led
+} ;
+volatile NextionPage lcdCurrentPageId;
 #endif

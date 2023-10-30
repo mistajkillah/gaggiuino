@@ -1,4 +1,9 @@
 /* 09:32 15/03/2023 - change triggering comment */
+
+#include <stdint.h>
+#include <stddef.h>
+#include <math.h>
+#include "Arduino.h"
 #include "profiling_phases.h"
 
 //----------------------------------------------------------------------//

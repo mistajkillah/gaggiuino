@@ -6,8 +6,9 @@ CXXFLAGS = -IInc -I. -ICommon -Wall -std=c++11
 SRC = gaggiuino.cpp log.cpp eeprom_data/eeprom_data.cpp functional/descale.cpp\
 functional/just_do_coffee.cpp\
 peripherals/pressure_sensor.cpp peripherals/pump.cpp\
-peripherals/remote_scales.cpp peripherals/scales.cpp PSM/PSM.cpp SimpleKalmanFilter/SimpleKalmanFilter.cpp\
-Common\mcu_comms.cpp Common\measurements.cpp Common\profiling_phases.cpp Commons\utils.cpp MAX6675\max6675.cpp
+peripherals/remote_scales.cpp  PSM/PSM.cpp SimpleKalmanFilter/SimpleKalmanFilter.cpp\
+Common/measurements.cpp Common/profiling_phases.cpp Common/utils.cpp MAX6675/max6675.cpp movingAvg/movingAvg.cpp\
+ADS1X15/ADS1X15.cpp
 
 OBJ = $(SRC:.cpp=.o)
 

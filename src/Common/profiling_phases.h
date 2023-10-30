@@ -34,7 +34,16 @@ struct PhaseStopConditions {
   float flowBelow = -1;
   float weight = -1; //example: when pushed weight >0 stop this phase)
   float waterPumpedInPhase = -1;
+PhaseStopConditions(  long time = -1,
+  float pressureAbove = -1,
+  float pressureBelow = -1,
+  float flowAbove = -1,
+  float flowBelow = -1,
+  float weight = -1, //example: when pushed weight >0 stop this phase)
+  float waterPumpedInPhase = -1):time(time),pressureAbove(pressureAbove),pressureBelow(pressureBelow),flowAbove(flowAbove),flowBelow(flowBelow), weight(weight),waterPumpedInPhase(waterPumpedInPhase)
+  {
 
+  }
   bool isReached(SensorState& state, long timeInShot, ShotSnapshot stateAtPhaseStart) const;
 };
 

@@ -1,6 +1,7 @@
-#ifndef REMOTE_SCALE_H
-#define REMOTE_SCALE_H
-
+// #ifndef REMOTE_SCALE_H
+// #define REMOTE_SCALE_H
+#include <stdint.h>
+#include <stddef.h>
 #include "remote_scales.h"
 #include "esp_comms.h"
 
@@ -16,7 +17,7 @@ void remoteScalesTare(void) {
     return;
   }
 
-  espCommsSendTareScalesCommand();
+  //espCommsSendTareScalesCommand();
   lastRemoteScalesTare = millis();
 }
 
@@ -38,4 +39,4 @@ void onRemoteScalesDisconnected() {
   remoteScalesPresent = false;
 }
 
-#endif
+//#endif

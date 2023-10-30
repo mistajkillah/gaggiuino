@@ -11,15 +11,7 @@ Adafruit_MAX31855 thermocouple(thermoCS, &thermoSPI);
 #else
 #include <max6675.h>
 
-class SPIClass {       // The class
-  public:             // Access specifier
-    SPIClass(int a, int b , int c)
-    {
-      
-    }
-    int myNum;        // Attribute (int variable)
-    
-};
+
 SPIClass thermoSPI(thermoDI, thermoDO, thermoCLK);
 MAX6675 thermocouple(thermoCS, &thermoSPI);
 //TODO

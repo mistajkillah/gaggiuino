@@ -1,4 +1,6 @@
 /* 09:32 15/03/2023 - change triggering comment */
+#include <stdint.h>
+#include <stdio.h>
 #include "pressure_sensor.h"
 #include "pindef.h"
 #include "ADS1X15.h"
@@ -56,7 +58,7 @@ void getAdsError(void) {
   char tmp[25];
   unsigned int check = snprintf(tmp, sizeof(tmp), "ADS error code: %i", result);
   if (check > 0 && check <= sizeof(tmp)) {
-    lcdShowPopup(tmp);
+    //lcdShowPopup(tmp);
   }
 }
 
@@ -72,7 +74,7 @@ void i2cResetState(void) {
     char tmp[25];
     unsigned int check = snprintf(tmp, sizeof(tmp), "I2C error code: %i", result);
     if (check > 0 && check <= sizeof(tmp)) {
-      result == 0 ? adsInit() : lcdShowPopup(tmp);
+     // result == 0 ? adsInit() : lcdShowPopup(tmp);
     }
     delay(50);
   }

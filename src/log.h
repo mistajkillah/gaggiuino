@@ -2,9 +2,7 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <Arduino.h>
-#include "pindef.h"
-#include <stdio.h>
+
 
 #define FILENAME (__builtin_strrchr("/" __FILE__, '/') + 1)
 #define LOG_MAX_STRING_LEN 64

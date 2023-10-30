@@ -1,4 +1,7 @@
 
+#include <stdint.h>
+#include <stddef.h>
+#include "Arduino.h"
 #include "measurements.h"
 
 void Measurements::add(float measurement) {

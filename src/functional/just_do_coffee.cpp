@@ -1,4 +1,5 @@
 /* 09:32 15/03/2023 - change triggering comment */
+#include <stdint.h>
 #include "just_do_coffee.h"
 //#include "../lcd/lcd.h"
 
@@ -14,7 +15,7 @@ inline static float TEMP_DELTA(float d, const SensorState &currentState) {
 }
 
 void justDoCoffee(const eepromValues_t &runningCfg, const SensorState &currentState, const bool brewActive) {
-  lcdTargetState((int)HEATING::MODE_brew); // setting the target mode to "brew temp"
+  //lcdTargetState((int)HEATING::MODE_brew); // setting the target mode to "brew temp"
   float brewTempSetPoint = ACTIVE_PROFILE(runningCfg).setpoint + runningCfg.offsetTemp;
   float sensorTemperature = currentState.temperature + runningCfg.offsetTemp;
 
@@ -26,7 +27,7 @@ void justDoCoffee(const eepromValues_t &runningCfg, const SensorState &currentSt
       if (runningCfg.brewDeltaState) {
         float tempDelta = TEMP_DELTA(brewTempSetPoint, currentState);
         float BREW_TEMP_DELTA = mapRange(sensorTemperature, brewTempSetPoint, brewTempSetPoint + tempDelta, tempDelta, 0, 0);
-        deltaOffset = constrain(BREW_TEMP_DELTA, 0, tempDelta);
+        deltaOffset = constrain((float)BREW_TEMP_DELTA, (float)0, (float)tempDelta);
       }
       if (sensorTemperature <= brewTempSetPoint + deltaOffset) {
         pulseHeaters(runningCfg.hpwr, runningCfg.mainDivider, runningCfg.brewDivider, brewActive);
@@ -41,7 +42,7 @@ void justDoCoffee(const eepromValues_t &runningCfg, const SensorState &currentSt
       int HPWR_LOW = runningCfg.hpwr / runningCfg.mainDivider;
       // Calculating the boiler heating power range based on the below input values
       int HPWR_OUT = mapRange(sensorTemperature, brewTempSetPoint - 10, brewTempSetPoint, runningCfg.hpwr, HPWR_LOW, 0);
-      HPWR_OUT = constrain(HPWR_OUT, HPWR_LOW, runningCfg.hpwr);  // limits range of sensor values to HPWR_LOW and HPWR
+      HPWR_OUT = constrain((float)HPWR_OUT, (float)HPWR_LOW, (float)runningCfg.hpwr);  // limits range of sensor values to HPWR_LOW and HPWR
 
       if (sensorTemperature <= ((float)brewTempSetPoint - 5.f)) {
         pulseHeaters(HPWR_OUT, 1, runningCfg.mainDivider, brewActive);
@@ -76,7 +77,7 @@ void pulseHeaters(const uint32_t pulseLength, const int factor_1, const int fact
 //################################____STEAM_POWER_CONTROL____##################################
 //#############################################################################################
 void steamCtrl(const eepromValues_t &runningCfg, SensorState &currentState) {
-  currentState.steamSwitchState ? lcdTargetState((int)HEATING::MODE_steam) : lcdTargetState((int)HEATING::MODE_brew); // setting the steam/hot water target temp
+  //currentState.steamSwitchState ? lcdTargetState((int)HEATING::MODE_steam) : lcdTargetState((int)HEATING::MODE_brew); // setting the steam/hot water target temp
   // steam temp control, needs to be aggressive to keep steam pressure acceptable
   float steamTempSetPoint = runningCfg.steamSetPoint + runningCfg.offsetTemp;
   float sensorTemperature = currentState.temperature + runningCfg.offsetTemp;

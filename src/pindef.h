@@ -33,5 +33,7 @@
 #define USART_LCD     15 //Serial2 // PA2(TX) & PA3(RX)
 #define USART_ESP     16 //Serial1 // PA9(TX) & PA10(RX)
 #define USART_DEBUG   17 //Serial  // USB-CDC (Takes PA8,PA9,PA10,PA11)
+#define PIN_WIRE_SDA 1
+#define PIN_WIRE_SCL 1
 
 #endif

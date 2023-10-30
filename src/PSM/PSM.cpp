@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "PSM.h"
 
 PSM* _thePSM;
