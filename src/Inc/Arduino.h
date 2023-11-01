@@ -10,7 +10,7 @@
 #define OUTPUT 0
 #define TIM9 0
 #define NOT_AN_INTERRUPT 0
-
+#define OUTPUT_OPEN_DRAIN 1
 static void attachInterrupt(int a,void fun(), int c)
 {
 

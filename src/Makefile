@@ -1,6 +1,6 @@
 # Define the compiler and flags
 CC = g++
-CXXFLAGS = -IInc -I. -ICommon -Wall -std=c++11 
+CXXFLAGS = -IInc -I. -ICommon -Wall -std=c++11 -DLEGO_VALVE_RELAY
 
 # Define the source files and object files
 SRC = gaggiuino.cpp log.cpp eeprom_data/eeprom_data.cpp functional/descale.cpp\

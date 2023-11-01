@@ -4,7 +4,7 @@
   #include "dbg.h"
 #endif
 #include <array>
-
+#include <stdio.h>
 #include <math.h>
 #include <stdint.h>
 #include <Arduino.h>
@@ -778,8 +778,8 @@ static inline void sysHealthCheck(float pressureThreshold) {
         case NextionPage::BrewGraph:
         case NextionPage::GraphPreview:
           brewDetect();
-          lcdRefresh();
-          lcdListen();
+          //lcdRefresh();
+          //lcdListen();
           sensorsRead();
           justDoCoffee(runningCfg, currentState, brewActive);
           break;

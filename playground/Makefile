@@ -1,24 +1,43 @@
-# Define the name of your C++ program
+# Main Makefile for gpio_control
+
+# Compiler and linker configurations
+CXX = g++
+CXXFLAGS = -I./Drivers -Wall
+LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt
+
+# Target binary
 TARGET = gpio_control
 
-# Specify the source and object files
-SRCS = gpio_control.cpp
-OBJS = $(SRCS:.cpp=.o)
+# Source files
+SRC = gpio_control.cpp
+OBJ = $(SRC:.cpp=.o)
 
-# Compiler and linker options
-CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++11
-LDFLAGS = -lpigpio -lrt
+# Rule for making the actual target
+$(TARGET): $(OBJ)
+	$(CXX) $(OBJ) -o $(TARGET) $(LDFLAGS)
 
-all: $(TARGET)
-
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
-
+# Rule for object files
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Phony targets for clean and making the library
+.PHONY: clean drivers
+
+# Rule to make the drivers library
+drivers:
+	$(MAKE) -C Drivers
+
+# Clean rule
 clean:
-	rm -f $(OBJS) $(TARGET)
+	$(RM) $(OBJ) $(TARGET)
+	$(MAKE) -C Drivers clean
 
-.PHONY: all clean
+# Include dependency files
+-include $(OBJ:.o=.d)
+
+# Rule to generate a dependency file by using the C preprocessor
+%.d: %.cpp
+	@$(CPP) $(CXXFLAGS) $< -MM -MT $(@:.d=.o) >$@
+
+# Make the drivers library as well
+all: drivers $(TARGET)
