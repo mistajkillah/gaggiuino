@@ -1,6 +1,8 @@
  #include "GenergicDrivers.h"
  #include "Spi.h"
-
+#include "I2cBus.h"
+#include "I2cBusLinux.h"
+#include "ADS1X15.h"
  #include "SpiLinux.h"
  #include "MAX6675_TempSensor.h"
 #include <pigpio.h>
@@ -15,6 +17,25 @@ void inputCallback(int gpio, int level, uint32_t tick) {
     // Set the output pin based on the input pin level
     gpioWrite(outputPin, level);
 }
+void ReadADC()
+{
+I2cBusLinux i2c(0,"i2c0");
+ADS1015 adc(&i2c,"WaterTemp",0x48);
+adc.begin();
+adc.setGain(0);
+  int16_t val_0 = adc.readADC(0);  
+  int16_t val_1 = adc.readADC(1);  
+  int16_t val_2 = adc.readADC(2);  
+  int16_t val_3 = adc.readADC(3);  
+
+  float f = adc.toVoltage(1);  // voltage factor
+
+  printf("Analog0: 0x%X  %f\n",val_0,val_0 * f);
+  printf("Analog1: 0x%X  %f\n",val_1,val_1 * f);
+  printf("Analog2: 0x%X  %f\n",val_2,val_2* f);
+  printf("Analog3: 0x%X  %f\n",val_3,val_3 * f);  
+}
+
 void ReadTemp()
 {
   

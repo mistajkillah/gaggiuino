@@ -32,7 +32,7 @@ GenericDriverStatus I2cBusLinux::reset()
 }
 
 
-GenericDriverStatus I2cBusLinux::readData(unsigned char deviceAddr,
+GenericDriverStatus I2cBusLinux::readData(unsigned char devAddr,
                                  unsigned char* data,
                                  unsigned int byteCount)
 {
@@ -42,9 +42,9 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char deviceAddr,
     struct i2c_rdwr_ioctl_data i2cIoctlData;
 
     tmprintf_m(TMSK_i2c,
-               "busId = %d, deviceAddr = 0x%02x, byteCount = %u\n",
+               "busId = %d, devAddr = 0x%02x, byteCount = %u\n",
                _busId,
-               deviceAddr,
+               devAddr,
                byteCount);
 
     memset(data, 0, byteCount);
@@ -69,7 +69,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char deviceAddr,
 
 #if 0
     /* set address */
-    if (ioctl(busFD, I2C_SLAVE_FORCE, deviceAddr) == -1)
+    if (ioctl(busFD, I2C_SLAVE_FORCE, devAddr) == -1)
     {
         tmprintf_m(TMSK_error, "ioctl I2C_SLAVE_FORCE failed\n");
         goto finis;
@@ -79,7 +79,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char deviceAddr,
     i2cIoctlData.msgs  = &i2cMessage;
     i2cIoctlData.nmsgs = 1;
 
-    i2cMessage.addr  = deviceAddr;
+    i2cMessage.addr  = devAddr;
     i2cMessage.flags = I2C_M_RD;
     i2cMessage.len   = byteCount;
     i2cMessage.buf   = data;
@@ -89,7 +89,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char deviceAddr,
         tmprintf_m(TMSK_error,
                    "ioctl failed, bus = %d, device = 0x%02x, errno = %d <%s>\n",
                    _busId,
-                   deviceAddr,
+                   devAddr,
                    errno,
                    strerror(errno));
 
@@ -107,13 +107,13 @@ end:
     return (status);
 }
 
-GenericDriverStatus I2cBusLinux::readByte(unsigned char deviceAddr, unsigned char& data)
+GenericDriverStatus I2cBusLinux::readByte(unsigned char devAddr, unsigned char& data)
 {
-    return readData(deviceAddr, &data, 1);
+    return readData(devAddr, &data, 1);
 }
 
 
-GenericDriverStatus I2cBusLinux::writeData(unsigned char deviceAddr,
+GenericDriverStatus I2cBusLinux::writeData(unsigned char devAddr,
                                   unsigned char* data, 
                                   unsigned int byteCount, 
                                   unsigned int timeoutMsec)
@@ -124,9 +124,9 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char deviceAddr,
     struct i2c_rdwr_ioctl_data i2cIoctlData;
 
     tmprintf_m(TMSK_i2c,
-               "busId = %d, deviceAddr = 0x%2x, byteCount = %u, timeoutMsec = %u\n",
+               "busId = %d, devAddr = 0x%2x, byteCount = %u, timeoutMsec = %u\n",
                _busId,
-               deviceAddr,
+               devAddr,
                byteCount,
                timeoutMsec);
 
@@ -150,7 +150,7 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char deviceAddr,
 
 #if 0
     /* set address */
-    if (ioctl(busFD, I2C_SLAVE_FORCE, deviceAddr) < 0) {
+    if (ioctl(busFD, I2C_SLAVE_FORCE, devAddr) < 0) {
         tmprintf_m(TMSK_error,"ioctl I2C_SLAVE_FORCE failed\n");
         goto finis;
     }
@@ -159,7 +159,7 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char deviceAddr,
     i2cIoctlData.msgs  = &i2cMessage;
     i2cIoctlData.nmsgs = 1;
 
-    i2cMessage.addr = deviceAddr;
+    i2cMessage.addr = devAddr;
     i2cMessage.flags = 0;
     i2cMessage.len = byteCount;
     i2cMessage.buf = data;
@@ -169,7 +169,7 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char deviceAddr,
         tmprintf_m(TMSK_error,
                    "ioctl failed, bus = %d, device = 0x%02x, errno = %d <%s>\n",
                    _busId,
-                   deviceAddr,
+                   devAddr,
                    errno,
                    strerror(errno));
 
@@ -188,13 +188,13 @@ end:
 }
 
 
-GenericDriverStatus I2cBusLinux::writeByte(unsigned char deviceAddr, unsigned char data)
+GenericDriverStatus I2cBusLinux::writeByte(unsigned char devAddr, unsigned char data)
 {
-    return writeData(deviceAddr, &data, 1);
+    return writeData(devAddr, &data, 1);
 }
 
 
-GenericDriverStatus I2cBusLinux::writeReadData(unsigned char deviceAddr,
+GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
                                       unsigned char* command,
                                       unsigned int commandByteCount,
                                       unsigned char* data,
@@ -207,9 +207,9 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char deviceAddr,
     struct i2c_rdwr_ioctl_data i2cIoctlData;
 
     tmprintf_m(TMSK_i2c,
-               "busId = %d, deviceAddr = 0x%02x, commandByteCount = %u, dataByteCount = %u\n",
+               "busId = %d, devAddr = 0x%02x, commandByteCount = %u, dataByteCount = %u\n",
                _busId,
-               deviceAddr,
+               devAddr,
                commandByteCount,
                dataByteCount);
 
@@ -253,12 +253,12 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char deviceAddr,
     i2cIoctlData.msgs  = &i2cMessages[0];
     i2cIoctlData.nmsgs = 2;
 
-    i2cMessages[0].addr  = deviceAddr;
+    i2cMessages[0].addr  = devAddr;
     i2cMessages[0].flags = 0;
     i2cMessages[0].len   = commandByteCount;
     i2cMessages[0].buf   = command;
 
-    i2cMessages[1].addr  = deviceAddr;
+    i2cMessages[1].addr  = devAddr;
     i2cMessages[1].flags = I2C_M_RD;
     i2cMessages[1].len   = dataByteCount;
     i2cMessages[1].buf   = data;
@@ -268,7 +268,7 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char deviceAddr,
         tmprintf_m(TMSK_error,
                    "ioctl failed, bus = %d, device = 0x%02x, errno = %d <%s>\n",
                    _busId,
-                   deviceAddr,
+                   devAddr,
                    errno,
                    strerror(errno));
 

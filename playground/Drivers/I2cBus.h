@@ -44,20 +44,20 @@ public:
         return GenericDriverStatus_NotImplemented;
     }
 
-    virtual GenericDriverStatus readData(unsigned char deviceAddr,
+    virtual GenericDriverStatus readData(unsigned char devAddr,
                                 unsigned char* data,
                                 unsigned int byteCount)
     {
         return GenericDriverStatus_NotImplemented;
     }
 
-    virtual GenericDriverStatus readByte(unsigned char deviceAddr,
+    virtual GenericDriverStatus readByte(unsigned char devAddr,
                                 unsigned char &data)
     {
         return GenericDriverStatus_NotImplemented;
     }
 
-    virtual GenericDriverStatus writeData(unsigned char deviceAddr,
+    virtual GenericDriverStatus writeData(unsigned char devAddr,
                                  unsigned char* data,
                                  unsigned int byteCount,
                                  unsigned int timeoutMsec = WRITE_TIMEOUT_MSEC)
@@ -65,13 +65,13 @@ public:
         return GenericDriverStatus_NotImplemented;
     }
 
-    virtual GenericDriverStatus writeByte(unsigned char deviceAddr,
+    virtual GenericDriverStatus writeByte(unsigned char devAddr,
                                  unsigned char data)
     {
         return GenericDriverStatus_NotImplemented;
     }
 
-    virtual GenericDriverStatus writeReadData(unsigned char deviceAddr,
+    virtual GenericDriverStatus writeReadData(unsigned char devAddr,
                                      unsigned char* command,
                                      unsigned int commandByteCount,
                                      unsigned char* data,

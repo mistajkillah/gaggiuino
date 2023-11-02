@@ -24,22 +24,22 @@ public:
 
     virtual GenericDriverStatus reset();
 
-    virtual GenericDriverStatus readData(unsigned char deviceAddr,
+    virtual GenericDriverStatus readData(unsigned char devAddr,
                                 unsigned char* data,
                                 unsigned int byteCount);
 
-    virtual GenericDriverStatus readByte(unsigned char deviceAddr,
+    virtual GenericDriverStatus readByte(unsigned char devAddr,
                                 unsigned char& data);
 
-    virtual GenericDriverStatus writeData(unsigned char deviceAddr,
+    virtual GenericDriverStatus writeData(unsigned char devAddr,
                                  unsigned char* data,
                                  unsigned int byteCount,
                                  unsigned int timeoutMsec = WRITE_TIMEOUT_MSEC);
 
-    virtual GenericDriverStatus writeByte(unsigned char deviceAddr,
+    virtual GenericDriverStatus writeByte(unsigned char devAddr,
                                  unsigned char data);
 
-    virtual GenericDriverStatus writeReadData(unsigned char deviceAddr,
+    virtual GenericDriverStatus writeReadData(unsigned char devAddr,
                                      unsigned char* command,
                                      unsigned int commandByteCount,
                                      unsigned char* data,
