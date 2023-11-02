@@ -8,13 +8,12 @@
 
 
 SpiBus::Lock::Lock(SpiBus* bus) :
-    std::unique_lock<std::recursive_mutex>(bus->mutex, std::defer_lock),
-    bus(bus)
-{
+  std::unique_lock<std::recursive_mutex>(bus->mutex, std::defer_lock),
+  bus(bus) {
 
-    lock(); //try_lock() //todo
-    tmindent(TMSK_spi);
-    tmprintf_m(TMSK_spi, "bus=%s, acquired=%d\n", bus->name, owns_lock());
+  lock(); //try_lock() //todo
+  tmindent(TMSK_spi);
+  tmprintf_m(TMSK_spi, "bus=%s, acquired=%d\n", bus->name, owns_lock());
 }
 
 
@@ -23,8 +22,7 @@ SpiBus::Lock::Lock(SpiBus* bus) :
  * thread is still holding it.
  *
  */
-SpiBus::Lock::~Lock()
-{
-    tmindent(TMSK_spi);
-    tmprintf_m(TMSK_spi, "bus=%s\n", bus->name);
+SpiBus::Lock::~Lock() {
+  tmindent(TMSK_spi);
+  tmprintf_m(TMSK_spi, "bus=%s\n", bus->name);
 }

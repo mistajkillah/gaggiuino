@@ -3,46 +3,33 @@
 //class SpiBus;
 
 class SPI;
-class SpiBusLinux : public SpiBus
+
+class SpiDeviceLinux : SpiBus
 {
-    const char* __class__ = "SpiLinux";
+  const char* __class__ = "SpiLinux";
 
 public:
-
-    //typedef FpgaRegister::FpgaAddr FpgaAddr;
-    //typedef FpgaRegister::FpgaData FpgaData;
-
-
-    SpiBusLinux(int busId,
-    int speedHz, 
-    long bitsPerWord,     
+  SpiDeviceLinux(int busId,
+    int csIndex,
+    int speedHz,
+    long bitsPerWord,
     int delayUsec,
     int mode,
     const char* name);
-    
-    virtual ~SpiBusLinux()
-    {}
-
-
-
- virtual  GenericDriverStatus sendReceiveBuffer(const unsigned char* sendMessage, size_t numberWriteBytes,
-        unsigned char* responseMessage, size_t numberReadBytes);
-
-
-//  virtual GenericDriverStatus reset(bool waitForReset = false);
- 
-    
-
-
-
+  virtual  GenericDriverStatus sendReceiveBuffer(const unsigned char* sendMessage, size_t numberWriteBytes,
+    unsigned char* responseMessage, size_t numberReadBytes);
+  
+  virtual ~SpiDeviceLinux() {
+  }
+protected:
+  int _busId;
+  int _csIndex;
+  int _speedHz;
+  long _bitsPerWord;
+  int _delayUsec;
+  int _mode;
 private:
-    int _busId = 0;
-    int csIndex=0;   
-    int speedHz=0;
-    long bitsPerWord=0;
-    int delayUsec=0;
-    int mode=0;
-    SPI *mySPI;
-
+  SPI* mySPI;
+  char handle[32];
+  spi_config_t spi_config;
 };
-

@@ -40,28 +40,24 @@
 #include "Spi.h"
 #include "TempSensor.h"
 
-class MAX6675_TempSensor final : public TempSensor , public SpiDevice {
+class MAX6675_TempSensor final : public TempSensor{
 
 	private:
-	SpiBus * _bus;
+	SpiDeviceLinux * _bus;
   const char *_name;
 
 	public:
 		MAX6675_TempSensor(
-    SpiBus *bus,
-    int csIndex,     
-    int speedHz, 
-    long bitsPerWord,     
-    int delayUsec,
-    int mode,
-    const char* name) :SpiDevice(bus, csIndex,speedHz,bitsPerWord,delayUsec,mode, name)
+    SpiDeviceLinux *spiDevice,
+    const char* name) : SpiDeviceLinux(spiDevice),
+    //SpiDeviceLinux(bus, csIndex,speedHz,bitsPerWord,delayUsec,mode, name)
         // _bus(bus),
         // _busId(busId),
         // csIndex(csIndex),
         // bitsPerWord(bitsPerWord),
         // delayUsec(delayUsec),
         // mode(mode), 
-        // _name(name)
+         _name(name)
     {
     }
 
