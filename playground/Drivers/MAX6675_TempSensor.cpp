@@ -9,8 +9,8 @@
 
 
 double MAX6675_TempSensor::readCelsius() {
-int value=0;
-GenericDriverStatus status=GenericDriverStatus_Success;
+  GenericDriverStatus status=GenericDriverStatus_Success;
+  int value=0;
   uint8_t tx_buffer[2];
   uint8_t rx_buffer[2];
   memset(tx_buffer, 0, 2);
@@ -20,12 +20,13 @@ GenericDriverStatus status=GenericDriverStatus_Success;
     assert(0 && " spi device null");
   }
   if(GenericDriverStatus_Success != (status=_spiDevice->sendReceiveBuffer(tx_buffer, 2, rx_buffer, 2)))
-  {    
+  {
     assert(0 && "GenericDriverStatus");
     return -1;
   }
   value =((rx_buffer[0] <<1) &0xFF00) | (rx_buffer[1] &0x000FF);
-  if (value & 0x4) {
+  if (value & 0x4) 
+  {
     return -1;
   }
   value >>= 3;

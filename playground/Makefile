@@ -2,8 +2,8 @@
 
 # Compiler and linker configurations
 CXX = g++
-CXXFLAGS = -I./Drivers -Wall
-LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt
+CXXFLAGS = -I./Drivers -Wall -ggdb3 -O0
+LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt 
 
 # Target binary
 TARGET = gpio_control

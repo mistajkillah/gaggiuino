@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -Wall -O2
+CXXFLAGS = -Wall -O0  -ggdb3
 
 # Source files
 SRCS = GenericDrivers.cpp AverageTempSensor.cpp MAX6675_TempSensor.cpp I2cBus.cpp SmoothTempSensor.cpp Spi.cpp spidev_lib++.cc I2cBusLinux.cpp SpiLinux.cpp
