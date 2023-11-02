@@ -28,7 +28,7 @@ protected:
   int _delayUsec;
   int _mode;
 private:
-  SPI* mySPI;
+  SPI* mySPI=NULL;
   char handle[32];
   spi_config_t spi_config;
 };

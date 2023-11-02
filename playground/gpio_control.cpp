@@ -18,7 +18,7 @@ void inputCallback(int gpio, int level, uint32_t tick) {
 void ReadTemp()
 {
   
-  SpiDeviceLinux  spiDevice(0,1,4000000,8,1000,0,"SpiDevice0.0");
+  SpiDeviceLinux  spiDevice(0,0,4000000,8,1000,0,"SpiDevice0.0");
   MAX6675_TempSensor tempSensor(&spiDevice,"BoilerTemp");
   printf("Temperature %lf\n",tempSensor.readCelsius());
 }

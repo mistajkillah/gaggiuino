@@ -24,7 +24,7 @@ double MAX6675_TempSensor::readCelsius() {
     assert(0 && "GenericDriverStatus");
     return -1;
   }
-  value =((rx_buffer[0] <<1) &0xFF00) | (rx_buffer[1] &0x000FF);
+  value =((rx_buffer[0] <<8) &0xFF00) | (rx_buffer[1] &0x000FF);
   if (value & 0x4) 
   {
     return -1;
