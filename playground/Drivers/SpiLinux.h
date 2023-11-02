@@ -18,8 +18,7 @@ public:
   virtual  GenericDriverStatus sendReceiveBuffer(const unsigned char* sendMessage, size_t numberWriteBytes,
     unsigned char* responseMessage, size_t numberReadBytes);
   
-  virtual ~SpiDeviceLinux() {
-  }
+  virtual ~SpiDeviceLinux();
   
 protected:
   int _busId;
