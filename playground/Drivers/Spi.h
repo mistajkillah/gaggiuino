@@ -1,9 +1,9 @@
 #pragma once
 #include "GenergicDrivers.h"
-class SpiAbstract
+class SpiBusAbstract
 {
 public:
-	virtual ~SpiAbstract() { }
+	virtual ~SpiBusAbstract() { }
     virtual GenericDriverStatus sendReceiveBuffer(const unsigned char* sendMessage, size_t numberWriteBytes,
         unsigned char* responseMessage, size_t numberReadBytes) = 0;
 
@@ -11,9 +11,9 @@ public:
 };
 
 
-class Spi : public SpiAbstract
+class SpiBus : public SpiBusAbstract
 {
-    const char* __class__ = "Spi";
+    const char* __class__ = "SpiBus";
 
 public:
 
@@ -25,26 +25,26 @@ public:
      */
     class Lock : public std::unique_lock<std::recursive_mutex>
     {
-        const char* __class__ = "Spi::Lock";
+        const char* __class__ = "SpiBus::Lock";
 
     public:
-        Lock(Spi* bus);
+        Lock(SpiBus* bus);
         ~Lock();
 
     private:
-        const Spi* bus;
+        const SpiBus* bus;
     };
 
-    Spi(const char* name):
+    SpiBus(const char* name):
     _name(name)
     {
     }
-    virtual ~Spi()
+    virtual ~SpiBus()
     {}
 
 
 
-  GenericDriverStatus sendReceiveBuffer(const unsigned char* sendMessage, size_t numberWriteBytes,
+  virtual GenericDriverStatus sendReceiveBuffer(const unsigned char* sendMessage, size_t numberWriteBytes,
         unsigned char* responseMessage, size_t numberReadBytes)
     {
         (void)sendMessage;
@@ -54,13 +54,13 @@ public:
         return GenericDriverStatus_NotImplemented;
     }
 
-    GenericDriverStatus reset(bool waitForReset = false)
+    virtual GenericDriverStatus reset(bool waitForReset = false)
     {
         (void)waitForReset;
         return GenericDriverStatus_NotImplemented;
     }
 
-    static Spi &Instance()
+    static SpiBus &Instance()
     {
     	return instance;
     }
@@ -76,9 +76,40 @@ private:
       return GenericDriverStatus_NotImplemented;
     }
     std::recursive_mutex mutex;
-    static Spi instance;
+    static SpiBus instance;
 
 protected:
 const char *_name;
 };
 
+
+class SpiDevice
+{
+  public:
+	SpiDevice(SpiBus *bus,
+    int csIndex,     
+    int speedHz, 
+    long bitsPerWord,     
+    int delayUsec,
+    int mode,
+    const char* name) :
+        _bus(bus),
+        _csIndex(csIndex),
+        _bitsPerWord(bitsPerWord),
+        _delayUsec(delayUsec),
+        _mode(mode), 
+        _name(name)
+    {
+    }
+  virtual ~SpiDevice()
+  {}
+  protected:
+    SpiBus * _bus;
+    int _csIndex;     
+    int _speedHz;
+    long _bitsPerWord;
+    int _delayUsec;
+    int _mode;
+    const char * _name;
+    
+};

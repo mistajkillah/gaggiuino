@@ -3,42 +3,42 @@
   Released into the public domain.
 */
 #include <math.h>
-#include "SmoothThermocouple.h"
+#include "SmoothTempSensor.h"
 
-SmoothThermocouple::SmoothThermocouple(
-  Thermocouple* origin,
+SmoothTempSensor::SmoothTempSensor(
+  TempSensor* origin,
   const int smoothingFactor
 ) {
   this->origin = origin;
   setSmoothingFactor(smoothingFactor);
 }
 
-SmoothThermocouple::~SmoothThermocouple() {
+SmoothTempSensor::~SmoothTempSensor() {
   delete this->origin;
 }
 
-double SmoothThermocouple::readCelsius() {
+double SmoothTempSensor::readCelsius() {
   return this->celsius = smoothe(
     this->origin->readCelsius(),
     this->celsius
   );
 }
 
-double SmoothThermocouple::readKelvin() {
+double SmoothTempSensor::readKelvin() {
   return this->kelvin = smoothe(
     this->origin->readKelvin(),
     this->kelvin
   );
 }
 
-double SmoothThermocouple::readFahrenheit() {
+double SmoothTempSensor::readFahrenheit() {
   return this->fahrenheit = smoothe(
     this->origin->readFahrenheit(),
     this->fahrenheit
   );
 }
 
-double SmoothThermocouple::smoothe(
+double SmoothTempSensor::smoothe(
   const double input, const double data
 ) {
   return (data == 0) ? input :
@@ -49,6 +49,6 @@ double SmoothThermocouple::smoothe(
   See about the max(*) function:
   https://www.arduino.cc/reference/en/language/functions/math/max/
 */
-inline void SmoothThermocouple::setSmoothingFactor(const int smoothingFactor) {
+inline void SmoothTempSensor::setSmoothingFactor(const int smoothingFactor) {
   this->smoothingFactor = std::max(smoothingFactor, MIN_SMOOTHING_FACTOR);
 }

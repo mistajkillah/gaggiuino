@@ -7,7 +7,7 @@
 #include "Spi.h"
 
 
-Spi::Lock::Lock(Spi* bus) :
+SpiBus::Lock::Lock(SpiBus* bus) :
     std::unique_lock<std::recursive_mutex>(bus->mutex, std::defer_lock),
     bus(bus)
 {
@@ -23,7 +23,7 @@ Spi::Lock::Lock(Spi* bus) :
  * thread is still holding it.
  *
  */
-Spi::Lock::~Lock()
+SpiBus::Lock::~Lock()
 {
     tmindent(TMSK_spi);
     tmprintf_m(TMSK_spi, "bus=%s\n", bus->name);

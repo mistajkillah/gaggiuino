@@ -3,10 +3,10 @@
   Released into the public domain.
 */
 #include "GenergicDrivers.h"
-#include "AverageThermocouple.h"
+#include "AverageTempSensor.h"
 
-AverageThermocouple::AverageThermocouple(
-  Thermocouple* origin,
+AverageTempSensor::AverageTempSensor(
+  TempSensor* origin,
   const int readingsNumber,
   const int delayTimeInMillis
 ) {
@@ -15,23 +15,23 @@ AverageThermocouple::AverageThermocouple(
   this->delayTime = validate(delayTimeInMillis, DEFAULT_DELAY_TIME);
 }
 
-AverageThermocouple::~AverageThermocouple() {
+AverageTempSensor::~AverageTempSensor() {
   delete this->origin;
 }
 
-double AverageThermocouple::readCelsius() {
-  return average(&Thermocouple::readCelsius);
+double AverageTempSensor::readCelsius() {
+  return average(&TempSensor::readCelsius);
 }
 
-double AverageThermocouple::readKelvin() {
-return average(&Thermocouple::readKelvin);
+double AverageTempSensor::readKelvin() {
+return average(&TempSensor::readKelvin);
 }
 
-double AverageThermocouple::readFahrenheit() {
-  return average(&Thermocouple::readFahrenheit);
+double AverageTempSensor::readFahrenheit() {
+  return average(&TempSensor::readFahrenheit);
 }
 
-inline double AverageThermocouple::average(double (Thermocouple::*read)()) {
+inline double AverageTempSensor::average(double (TempSensor::*read)()) {
   double sum = 0;
   for (int i = 0; i < this->readingsNumber; ++i) {
     sum += (this->origin->*read)();
@@ -40,11 +40,11 @@ inline double AverageThermocouple::average(double (Thermocouple::*read)()) {
   return (sum / this->readingsNumber);
 }
 
-inline void AverageThermocouple::sleep() {
+inline void AverageTempSensor::sleep() {
   delay(this->delayTime);
 }
 
 template <typename A, typename B>
-inline A AverageThermocouple::validate(A data, B alternative) {
+inline A AverageTempSensor::validate(A data, B alternative) {
   return (data > 0) ? data : alternative;
 }

@@ -5,14 +5,14 @@ CXX = g++
 CXXFLAGS = -Wall -O2
 
 # Source files
-SRCS = GenericDrivers.cpp AverageThermocouple.cpp MAX6675_Thermocouple.cpp I2cBus.cpp SmoothThermocouple.cpp Spi.cpp spidev_lib++.cc I2cBusLinux.cpp
+SRCS = GenericDrivers.cpp AverageTempSensor.cpp MAX6675_TempSensor.cpp I2cBus.cpp SmoothTempSensor.cpp Spi.cpp spidev_lib++.cc I2cBusLinux.cpp SpiLinux.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 OBJS := $(OBJS:.cc=.o)
 
 # Header files
-HEADERS = AverageThermocouple.h MAX6675_Thermocouple.h I2cBus.h SmoothThermocouple.h Spi.h spidev_lib++.h I2cBusLinux.h GenergicDrivers.h Thermocouple.h
+HEADERS = AverageTempSensor.h MAX6675_TempSensor.h I2cBus.h SmoothTempSensor.h Spi.h spidev_lib++.h I2cBusLinux.h GenergicDrivers.h TempSensor.h
 
 # Library name
 LIB = libGenericDrivers.a

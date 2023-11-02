@@ -1,14 +1,14 @@
 /**
-  AverageThermocoupler - class-wrapper allows to average
-  the temperature value of origin Thermocouple instance.
+  AverageTempSensorr - class-wrapper allows to average
+  the temperature value of origin TempSensor instance.
 
   Instantiation:
-  Thermocouple* thermocouple = new AverageThermocouple(
-    THERMOCOUPLE, READINGS_NUMBER, DELAY_TIME
+  TempSensor* TempSensor = new AverageTempSensor(
+    TempSensor, READINGS_NUMBER, DELAY_TIME
   );
 
   Where,
-  THERMOCOUPLE - origin Thermocouple instance.
+  TempSensor - origin TempSensor instance.
 
   READINGS_NUMBER - How many readings are taken
   to determine a mean temperature. The more values,
@@ -19,9 +19,9 @@
   from the temperature sensor (ms).
 
   Read temperature:
-  double celsius = thermocouple->readCelsius();
-  double kelvin = thermocouple->readKelvin();
-  double fahrenheit = thermocouple->readFahrenheit();
+  double celsius = TempSensor->readCelsius();
+  double kelvin = TempSensor->readKelvin();
+  double fahrenheit = TempSensor->readFahrenheit();
 
   v.2.0.0
   - created
@@ -35,17 +35,17 @@
   v.2.0.2
   - replaced "define" constants with "static const"
 
-  https://github.com/YuriiSalimov/MAX6675_Thermocouple
+  https://github.com/YuriiSalimov/MAX6675_TempSensor
 
   Created by Yurii Salimov, May, 2019.
   Released into the public domain.
 */
-#ifndef AVERAGE_THERMOCOUPLE_H
-#define AVERAGE_THERMOCOUPLE_H
+#ifndef AVERAGE_TempSensor_H
+#define AVERAGE_TempSensor_H
 
-#include "Thermocouple.h"
+#include "TempSensor.h"
 
-class AverageThermocouple final : public Thermocouple {
+class AverageTempSensor final : public TempSensor {
 
   private:
     // Default number of average readings.
@@ -53,7 +53,7 @@ class AverageThermocouple final : public Thermocouple {
     // Default delay time of average readings.
     static const int DEFAULT_DELAY_TIME = 1;
 
-    Thermocouple* origin;
+    TempSensor* origin;
     int readingsNumber;
     int delayTime;
 
@@ -61,38 +61,38 @@ class AverageThermocouple final : public Thermocouple {
     /**
       Constructor
 
-      @param origin - origin Thermocouple instance (not NULL)
+      @param origin - origin TempSensor instance (not NULL)
       @param readingsNumber - average readings number (default, 10)
       @param delayTimeInMillis - average delay time in milliseconds (default, 1 ms)
     */
-    AverageThermocouple(
-      Thermocouple* origin,
+    AverageTempSensor(
+      TempSensor* origin,
       int readingsNumber = DEFAULT_READINGS_NUMBER,
       int delayTimeInMillis = DEFAULT_DELAY_TIME
     );
 
     /**
       Destructor
-      Deletes the origin Thermocouple instance.
+      Deletes the origin TempSensor instance.
     */
-    ~AverageThermocouple();
+    ~AverageTempSensor();
 
     /**
-      Reads a temperature in Celsius from the thermocouple.
+      Reads a temperature in Celsius from the TempSensor.
 
       @return average temperature in degree Celsius
     */
     double readCelsius() override;
 
     /**
-      Reads a temperature in Kelvin from the thermocouple.
+      Reads a temperature in Kelvin from the TempSensor.
 
       @return average temperature in degree Kelvin
     */
     double readKelvin() override;
 
     /**
-      Reads a temperature in Fahrenheit from the thermocouple.
+      Reads a temperature in Fahrenheit from the TempSensor.
 
       @return average temperature in degree Fahrenheit
     */
@@ -107,7 +107,7 @@ class AverageThermocouple final : public Thermocouple {
       @param *read - origin method that return temperature (not NULL)
       @return average temperature from the input *read() method
     */
-    inline double average(double (Thermocouple::*read)());
+    inline double average(double (TempSensor::*read)());
 
     /**
       For delay between readings.

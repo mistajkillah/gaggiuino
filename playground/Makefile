@@ -12,9 +12,12 @@ TARGET = gpio_control
 SRC = gpio_control.cpp
 OBJ = $(SRC:.cpp=.o)
 
+# Default target
+all: drivers $(TARGET)
+
 # Rule for making the actual target
 $(TARGET): $(OBJ)
-	$(CXX) $(OBJ) -o $(TARGET) $(LDFLAGS)
+	$(CXX) $(OBJ) -o $@ $(LDFLAGS)
 
 # Rule for object files
 %.o: %.cpp
@@ -38,6 +41,3 @@ clean:
 # Rule to generate a dependency file by using the C preprocessor
 %.d: %.cpp
 	@$(CPP) $(CXXFLAGS) $< -MM -MT $(@:.d=.o) >$@
-
-# Make the drivers library as well
-all: drivers $(TARGET)

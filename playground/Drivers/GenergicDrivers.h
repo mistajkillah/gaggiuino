@@ -1,3 +1,4 @@
+#pragma once
 #include <mutex>
 #include <stddef.h>
 #define tmprintf(t, f, ...) // printf(...)

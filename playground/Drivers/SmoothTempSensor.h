@@ -1,20 +1,20 @@
 /**
-  SmoothThermocouple - class-wrapper allows to smooth
-  the temperature value of origin Thermocouple instance.
+  SmoothTempSensor - class-wrapper allows to smooth
+  the temperature value of origin TempSensor instance.
 
   Instantiation:
-  Thermocouple* thermocouple = new SmoothThermocouple(
-    THERMOCOUPLE, SMOOTH_FACTOR
+  TempSensor* TempSensor = new SmoothTempSensor(
+    TempSensor, SMOOTH_FACTOR
   );
 
   Where,
-  THERMOCOUPLE - origin Thermocouple instance.
+  TempSensor - origin TempSensor instance.
   SMOOTH_FACTOR - smoothing factor of a temperature value.
 
   Read temperature:
-  double celsius = thermocouple->readCelsius();
-  double kelvin = thermocouple->readKelvin();
-  double fahrenheit = thermocouple->readFahrenheit();
+  double celsius = TempSensor->readCelsius();
+  double kelvin = TempSensor->readKelvin();
+  double fahrenheit = TempSensor->readFahrenheit();
 
   v.2.0.0
   - created
@@ -28,23 +28,23 @@
   v.2.0.2
   - replaced "define" constants with "static const"
 
-  https://github.com/YuriiSalimov/MAX6675_Thermocouple
+  https://github.com/YuriiSalimov/MAX6675_TempSensor
 
   Created by Yurii Salimov, May, 2019.
   Released into the public domain.
 */
-#ifndef SMOOTH_THERMOCOUPLE_H
-#define SMOOTH_THERMOCOUPLE_H
+#ifndef SMOOTH_TempSensor_H
+#define SMOOTH_TempSensor_H
 
-#include "Thermocouple.h"
+#include "TempSensor.h"
 
-class SmoothThermocouple final : public Thermocouple {
+class SmoothTempSensor final : public TempSensor {
 
   private:
     // Minimum smoothing factor.
     static const int MIN_SMOOTHING_FACTOR = 2;
 
-    Thermocouple* origin;
+    TempSensor* origin;
     int smoothingFactor;
     double celsius = 0;
     double kelvin = 0;
@@ -54,36 +54,36 @@ class SmoothThermocouple final : public Thermocouple {
     /**
       Constructor
 
-      @param origin - origin Thermocouple instance.
+      @param origin - origin TempSensor instance.
       @param smoothingFactor - smoothing factor of a temperature value
     */
-    SmoothThermocouple(
-      Thermocouple* origin,
+    SmoothTempSensor(
+      TempSensor* origin,
       int smoothingFactor = MIN_SMOOTHING_FACTOR
     );
 
     /**
       Destructor
-      Deletes the origin Thermocouple instance.
+      Deletes the origin TempSensor instance.
     */
-    ~SmoothThermocouple();
+    ~SmoothTempSensor();
 
     /**
-      Reads a temperature in Celsius from the thermocouple.
+      Reads a temperature in Celsius from the TempSensor.
 
       @return average temperature in degree Celsius
     */
     double readCelsius() override;
 
     /**
-      Reads a temperature in Kelvin from the thermocouple.
+      Reads a temperature in Kelvin from the TempSensor.
 
       @return smoothed temperature in degree Kelvin
     */
     double readKelvin() override;
 
     /**
-      Reads a temperature in Fahrenheit from the thermocouple.
+      Reads a temperature in Fahrenheit from the TempSensor.
 
       @return smoothed temperature in degree Fahrenheit
     */
@@ -102,8 +102,8 @@ class SmoothThermocouple final : public Thermocouple {
 
     /**
       Sets the smoothing factor.
-      If the input value is less than THERMOCOUPLE_MIN_SMOOTHING_FACTOR,
-      then sets THERMOCOUPLE_MIN_SMOOTHING_FACTOR.
+      If the input value is less than TempSensor_MIN_SMOOTHING_FACTOR,
+      then sets TempSensor_MIN_SMOOTHING_FACTOR.
 
       @param smoothingFactor - new smoothing factor
     */

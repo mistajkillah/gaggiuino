@@ -1,17 +1,17 @@
 /**
-	MAX6675_Thermocouple - class describes a set of methods
-	for working with a thermocouple based on the MAX6675 driver
+	MAX6675_TempSensor - class describes a set of methods
+	for working with a TempSensor based on the MAX6675 driver
 	and reading a temperature in Celsius, Fahrenheit and Kelvin.
 
 	Instantiation:
-		Thermocouple* thermocouple = new MAX6675_Thermocouple(
+		TempSensor* TempSensor = new MAX6675_TempSensor(
 		SCK_pin, CS_pin, SO_pin
 	);
 
 	Read temperature:
-	double celsius = thermocouple->readCelsius();
-	double kelvin = thermocouple->readKelvin();
-	double fahrenheit = thermocouple->readFahrenheit();
+	double celsius = TempSensor->readCelsius();
+	double kelvin = TempSensor->readKelvin();
+	double fahrenheit = TempSensor->readFahrenheit();
 
 	v.1.1.2:
 	- optimized calls of private methods.
@@ -23,59 +23,69 @@
 	- Removed deprecated init() method.
 
 	v.2.0.0
-	- implemented Thermocouple interface;
+	- implemented TempSensor interface;
 	- removed methods for averaging result.
 
 	v.2.0.1
 	- optimized celsiusToFahrenheit() method;
 	- updated documentation.
 
-	https://github.com/YuriiSalimov/MAX6675_Thermocouple
+	https://github.com/YuriiSalimov/MAX6675_TempSensor
 
 	Created by Yurii Salimov, February, 2018.
 	Released into the public domain.
 */
-#ifndef MAX6675_THERMOCOUPLE_H
-#define MAX6675_THERMOCOUPLE_H
+#ifndef MAX6675_TempSensor_H
+#define MAX6675_TempSensor_H
 #include "Spi.h"
-#include "Thermocouple.h"
+#include "TempSensor.h"
 
-class MAX6675_Thermocouple final : public Thermocouple {
+class MAX6675_TempSensor final : public TempSensor , public SpiDevice {
 
 	private:
-		Spi * _bus;
+	SpiBus * _bus;
   const char *_name;
+
 	public:
-		/**
-			Constructor
+		MAX6675_TempSensor(
+    SpiBus *bus,
+    int csIndex,     
+    int speedHz, 
+    long bitsPerWord,     
+    int delayUsec,
+    int mode,
+    const char* name) :SpiDevice(bus, csIndex,speedHz,bitsPerWord,delayUsec,mode, name)
+        // _bus(bus),
+        // _busId(busId),
+        // csIndex(csIndex),
+        // bitsPerWord(bitsPerWord),
+        // delayUsec(delayUsec),
+        // mode(mode), 
+        // _name(name)
+    {
+    }
 
-			@param SCK_pin - SCK digital port number
-			@param CS_pin - CS digital port number
-			@param SO_pin - SO digital port number
-		*/
-		MAX6675_Thermocouple(Spi * bus, const char *name);
-
 		/**
-			Reads a temperature in Celsius from the thermocouple.
+			Reads a temperature in Celsius from the TempSensor.
 
 			@return temperature in degree Celsius or
-			NAN if no thermocouple attached
+			NAN if no TempSensor attached
 		*/
 		double readCelsius();
 
 		/**
-			Reads a temperature in Kelvin from the thermocouple.
+			Reads a temperature in Kelvin from the TempSensor.
 
 			@return temperature in degree Kelvin or
-			NAN if no thermocouple attached
+			NAN if no TempSensor attached
 		*/
 		double readKelvin();
 
 		/**
-			Reads a temperature in Fahrenheit from the thermocouple.
+			Reads a temperature in Fahrenheit from the TempSensor.
 
 			@return temperature in degree Fahrenheit or
-			NAN if no thermocouple attached
+			NAN if no TempSensor attached
 		*/
 		double readFahrenheit();
 

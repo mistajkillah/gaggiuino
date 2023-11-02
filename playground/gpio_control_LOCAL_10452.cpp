@@ -1,8 +1,3 @@
- #include "GenergicDrivers.h"
- #include "Spi.h"
-
- #include "SpiLinux.h"
- #include "MAX6675_TempSensor.h"
 #include <pigpio.h>
 #include <iostream>
 
@@ -10,7 +5,6 @@ const int inputPin = 22;    //PIN 15 interupt pin
 const int outputPin = 27;   //PIN 13 response to interupt pin
 const int togglePin = 17;   //PIN 11 fake clock/interupt agressor
 
-<<<<<<< HEAD
 // Callback function to be called when the input pin changes state
 void inputCallback(int gpio, int level, uint32_t tick) {
     // Set the output pin based on the input pin level
@@ -19,15 +13,6 @@ void inputCallback(int gpio, int level, uint32_t tick) {
 
 int main() {
     // Initialize pigpio library
-=======
-void ReadTemp()
-{
-  
-  SpiBusLinux spiBus(0,4000000,8,1000,0,"SpiBus0");
-  MAX6675_TempSensor tempSensor(NULL,0,4000000,8,1000,0,"BoilerTemp");
-}
-int main(void) {
->>>>>>> 4e40c15 (more work)
     if (gpioInitialise() < 0) {
         std::cerr << "Failed to initialize pigpio" << std::endl;
         return 1;
