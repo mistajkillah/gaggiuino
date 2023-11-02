@@ -18,10 +18,14 @@ void inputCallback(int gpio, int level, uint32_t tick) {
 void ReadTemp()
 {
   
-  SpiDeviceLinux  spiDevice(0,0,4000000,8,1000,0,"SpiBus0");
-  //MAX6675_TempSensor tempSensor(NULL,0,4000000,8,1000,0,"BoilerTemp");
+  SpiDeviceLinux  spiDevice(0,0,4000000,8,1000,0,"SpiDevice0.0");
+  MAX6675_TempSensor tempSensor(&spiDevice,"BoilerTemp");
+  printf("Temperature %lf\n",tempSensor.readCelsius());
 }
 int main() {
+  ReadTemp();
+  return 0;
+
     // Initialize pigpio library
     if (gpioInitialise() < 0) {
         std::cerr << "Failed to initialize pigpio" << std::endl;
