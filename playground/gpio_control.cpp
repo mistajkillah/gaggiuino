@@ -18,8 +18,8 @@ void inputCallback(int gpio, int level, uint32_t tick) {
 void ReadTemp()
 {
   
-  SpiBusLinux spiBus(0,4000000,8,1000,0,"SpiBus0");
-  MAX6675_TempSensor tempSensor(NULL,0,4000000,8,1000,0,"BoilerTemp");
+  SpiDeviceLinux  spiDevice(0,0,4000000,8,1000,0,"SpiBus0");
+  //MAX6675_TempSensor tempSensor(NULL,0,4000000,8,1000,0,"BoilerTemp");
 }
 int main() {
     // Initialize pigpio library

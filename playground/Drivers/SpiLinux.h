@@ -1,10 +1,9 @@
 #pragma once
 #include "Spi.h"
+#include "spidev_lib++.h"
 //class SpiBus;
 
-class SPI;
-
-class SpiDeviceLinux : SpiBus
+class SpiDeviceLinux : public SpiBus
 {
   const char* __class__ = "SpiLinux";
 
@@ -21,6 +20,7 @@ public:
   
   virtual ~SpiDeviceLinux() {
   }
+  
 protected:
   int _busId;
   int _csIndex;

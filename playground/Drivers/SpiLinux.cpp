@@ -20,9 +20,9 @@ SpiDeviceLinux::SpiDeviceLinux(int busId,
     spi_config.speed = speedHz;
     spi_config.delay = delayUsec;
     spi_config.bits_per_word = bitsPerWord;
-    int busFD = -1;
     sprintf(handle, "/dev/spidev%d.%d", this->_busId, 1);
 }
+
 GenericDriverStatus SpiDeviceLinux::sendReceiveBuffer(const unsigned char* sendMessage, size_t numberWriteBytes,
   unsigned char* responseMessage, size_t numberReadBytes) {
   mySPI = new SPI(handle, &spi_config);
@@ -33,14 +33,18 @@ GenericDriverStatus SpiDeviceLinux::sendReceiveBuffer(const unsigned char* sendM
   }
   if (mySPI->begin())
   {
-    mySPI->xfer(sendMessage, numberWriteBytes, responseMessage, numberReadBytes);
+    if(0 !=mySPI->xfer(sendMessage, numberWriteBytes, responseMessage, numberReadBytes))
+    {
+      return GenericDriverStatus_SpiError;
+    }
   }
   else
   {
-    delete mySPI
+    delete mySPI;
     mySPI = NULL;
-    return GenericDriverStatus_SpiError;
+   
   }
+return  GenericDriverStatus_Success;
 }
 
 

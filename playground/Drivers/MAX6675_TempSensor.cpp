@@ -2,32 +2,25 @@
   Created by Yurii Salimov, February, 2018.
   Released into the public domain.
 */
+#include <assert.h>
 #include <string.h>
 #include "Spi.h"
 #include "MAX6675_TempSensor.h"
 
-// MAX6675_TempSensor::MAX6675_TempSensor(
-//   SpiBus *bus,
-//   int csIndex,     
-//   int speedHz, 
-//   long bitsPerWord,     
-//   int delayUsec,
-//   int mode,
-//   const char* name) :
-//       _bus(bus),
-//       _busId(busId),
-//       csIndex(csIndex),
-//       bitsPerWord(bitsPerWord),
-//       delayUsec(delayUsec),
-//       mode(mode), 
-//       _name(name)
-//   {
 
 double MAX6675_TempSensor::readCelsius() {
-  int value = spiread();
-  value <<= 8;
-  value |= spiread();
 
+
+  uint8_t tx_buffer[2];
+  uint8_t rx_buffer[2];
+  memset(tx_buffer, 0, 2);
+  memset(rx_buffer, 0, 2);
+  if(NULL == _spiDevice)
+  {
+    assert(0 && " spi device null");
+  }
+  _spiDevice->sendReceiveBuffer(tx_buffer, 2, rx_buffer, 2);
+  int value =((tx_buffer[1] <<1) &0xFF00) | (tx_buffer[1] &0x000FF);
   if (value & 0x4) {
     return -1;
   }
@@ -59,11 +52,8 @@ double MAX6675_TempSensor::readFahrenheit() {
 
 byte MAX6675_TempSensor::spiread() {
   byte value = 0;
-  uint8_t tx_buffer[1];
-  uint8_t rx_buffer[1];
-  memset(tx_buffer, 0, 1);
-  memset(rx_buffer, 0, 1);
-  _bus->sendReceiveBuffer(tx_buffer, 1, rx_buffer, 1);
+
+  
 
   return value;
 }
