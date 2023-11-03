@@ -19,3 +19,4 @@ enum GenericDriverStatus
 };
 
 void delay(long msec);
+unsigned int millis () ;

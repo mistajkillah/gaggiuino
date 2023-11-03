@@ -21,7 +21,7 @@ public:
   void shiftDividerCounter(char value = 1);
 
 private:
-  static inline void onInterrupt();
+  static inline void onInterrupt(int gpio, int level, uint32_t tick);
   void calculateSkip();
   void updateControl();
 

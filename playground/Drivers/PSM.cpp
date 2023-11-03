@@ -1,3 +1,7 @@
+
+#include "pigpio/pigpio.h"
+#include <stddef.h>
+#include "Arduino.h"
 #include "PSM.h"
 
 PSM* _thePSM;
@@ -5,7 +9,7 @@ PSM* _thePSM;
 PSM::PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode, unsigned char divider, unsigned char interruptMinTimeDiff) {
   _thePSM = this;
 
-  pinMode(sensePin, INPUT_PULLUP);
+  pinSetPullUpDown(sensePin, INPUT_PULLUP);
   PSM::_sensePin = sensePin;
 
   pinMode(controlPin, OUTPUT);
@@ -26,7 +30,7 @@ PSM::PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, i
 void onPSMInterrupt() __attribute__((weak));
 void onPSMInterrupt() {}
 
-void PSM::onInterrupt() {
+void PSM::onInterrupt(int gpio, int level, uint32_t tick){
   if (_thePSM->_interruptMinTimeDiff > 0 && millis() - _thePSM->_lastMillis < _thePSM->_interruptMinTimeDiff) {
     return;
   }
