@@ -14,7 +14,8 @@ enum GenericDriverStatus
   GenericDriverStatus_NotImplemented=1,
   GenericDriverStatus_I2cError=2,
   GenericDriverStatus_I2cBusy=3,
-  GenericDriverStatus_SpiError=4
+  GenericDriverStatus_SpiError=4,
+  GenericDriverStatus_Error_Argument_Invalid=5
 };
 
 void delay(long msec);
