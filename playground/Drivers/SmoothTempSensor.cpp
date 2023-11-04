@@ -2,7 +2,9 @@
   Created by Yurii Salimov, May, 2019.
   Released into the public domain.
 */
+#include <stddef.h>
 #include <math.h>
+#include "Arduino.h"
 #include "SmoothTempSensor.h"
 
 SmoothTempSensor::SmoothTempSensor(

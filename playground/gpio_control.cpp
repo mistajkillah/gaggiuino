@@ -5,7 +5,7 @@
 #include "ADS1X15.h"
  #include "SpiLinux.h"
  #include "MAX6675_TempSensor.h"
-#include <pigpio/pigpio.h>
+#include <pigpio.h>
 #include <iostream>
 
 const int inputPin = 22;    //PIN 15 interupt pin

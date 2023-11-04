@@ -1,5 +1,6 @@
 #pragma once
-
+#include <stddef.h>
+#include <stdint.h>
 #define FALLING 1
 #define RISING 0
 #define LOW 0
@@ -15,7 +16,7 @@ int pinSetPullUpDown(int pin, int upDown);
 void digitalWrite(int pin, int value);
 int digitalRead(int pin);
 int pinMode(int pin , int mode);
-void delay(int delay);
+void delay(long delay);
 void delayMicroseconds(int delay);
 unsigned int millis();
 

@@ -1,7 +1,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <stddef.h>
-#include "pigpio/pigpio.h"
+#include "stdint.h"
+#include <pigpio.h>
 
 void attachInterrupt(int inputPin,void callback(int gpio, int level, uint32_t tick), int c)
 {

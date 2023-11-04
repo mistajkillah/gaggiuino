@@ -18,5 +18,3 @@ enum GenericDriverStatus
   GenericDriverStatus_Error_Argument_Invalid=5
 };
 
-void delay(long msec);
-unsigned int millis () ;

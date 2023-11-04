@@ -1,5 +1,5 @@
 
-#include "pigpio/pigpio.h"
+#include <pigpio.h>
 #include <stddef.h>
 #include "Arduino.h"
 #include "PSM.h"

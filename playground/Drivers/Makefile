@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -Wall -O0  -ggdb3
 
 # Source files
-SRCS = GenericDrivers.cpp AverageTempSensor.cpp MAX6675_TempSensor.cpp I2cBus.cpp SmoothTempSensor.cpp Spi.cpp spidev_lib++.cc I2cBusLinux.cpp SpiLinux.cpp ADS1X15.cpp
+SRCS = GenericDrivers.cpp AverageTempSensor.cpp MAX6675_TempSensor.cpp I2cBus.cpp SmoothTempSensor.cpp Spi.cpp spidev_lib++.cc I2cBusLinux.cpp SpiLinux.cpp ADS1X15.cpp Arduino.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)

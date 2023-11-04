@@ -3,8 +3,10 @@
   Released into the public domain.
 */
 #include <assert.h>
+#include <stddef.h>
 #include <string.h>
 #include "Spi.h"
+#include "Arduino.h"
 #include "MAX6675_TempSensor.h"
 
 
