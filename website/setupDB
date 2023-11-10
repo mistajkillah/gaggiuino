@@ -1,0 +1,6 @@
+#!/bin/bash
+mkdir Sensors_Database
+cd Sensors_Database/
+sqlite3 sensorsData.db| echo ".quit"
+
+

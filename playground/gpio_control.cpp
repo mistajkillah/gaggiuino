@@ -3,10 +3,11 @@
 #include "I2cBus.h"
 #include "I2cBusLinux.h"
 #include "ADS1X15.h"
- #include "SpiLinux.h"
+ #include "SiLinux.h"
  #include "MAX6675_TempSensor.h"
 #include <pigpio.h>
 #include <iostream>
+#include <sqlite3.h>
 
 const int inputPin = 22;    //PIN 15 interupt pin
 const int outputPin = 27;   //PIN 13 response to interupt pin
