@@ -11,7 +11,7 @@
 
 struct SensorState {
     uint32_t iteration;
-    char datestamp[20]; // MMDDYYYY:HH:MM:SS:MS:USEC
+    char datestamp[30]; // MMDDYYYY:HH:MM:SS:MS:USEC
     uint32_t timeSinceBrewStart; // msec
     uint32_t timeSinceSystemStart; // msec
     bool brewSwitchState;

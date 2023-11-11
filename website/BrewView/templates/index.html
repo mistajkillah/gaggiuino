@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Sensor Data Chart</title>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/css/bootstrap.min.css"
+          integrity="sha512-T584yQ/tdRR5QwOpfvDfVQUidzfgc2339Lc8uBDtcp/wYu80d7jwBgAxbyMh0a9YM9F8N3tdErpFI8iaGx6x5g=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.css"
+          integrity="sha512-/zs32ZEJh+/EO2N1b0PEdoA10JkdC3zJ8L5FTiQu82LR9S/rOQNfQN7U59U9BC12swNeRAz3HSzIL2vpp4fv3w=="
+          crossorigin="anonymous" referrerpolicy="no-referrer"/>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="sensor-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-4">
+            <label for="sensor-dropdown">Select Sensor Data:</label>
+            <select id="sensor-dropdown" class="form-control" multiple>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
+    </div>
+</div>
+<!--suppress JSUnresolvedLibraryURL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+        integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!--suppress JSUnresolvedLibraryURL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.bundle.min.js"
+        integrity="sha512-mULnawDVcCnsk9a4aG1QLZZ6rcce/jSzEGqUkeOLy0b6q0+T6syHrxlsAGH7ZVoqC93Pd0lBqd6WguPWih7VHA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<!--suppress JSUnresolvedLibraryURL -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"
+        integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    $(document).ready(function () {
+        const dataLength = 600; // Maximum data length to display (60 seconds * 10 samples per second)
+        const config = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [],
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Real-Time Sensor Data Chart'
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time (s)'
+                        },
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 10, // Maximum number of ticks on the X-axis
+                            callback: function (value, index, values) {
+                                return index % 10 === 0 ? value : ''; // Show every 10th label
+                            }
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Sensor Value'
+                        }
+                    }]
+                }
+            }
+        };
+
+        const context = document.getElementById('sensor-chart').getContext('2d');
+        const lineChart = new Chart(context, config);
+
+        const source = new EventSource("/chart-data");
+        let allSensorData = []; // Store all sensor data received
+
+        source.onmessage = function (event) {
+            const newData = JSON.parse(event.data);
+
+            // Update labels with time (in seconds)
+            config.data.labels.push(config.data.labels.length);
+
+            // Remove old data if it exceeds the maximum length
+            if (config.data.labels.length > dataLength) {
+                config.data.labels.shift();
+                for (const dataset of config.data.datasets) {
+                    dataset.data.shift();
+                }
+            }
+
+            // Create a dataset for each sensor data field (once)
+            if (config.data.datasets.length === 0) {
+                for (const key in newData[0]) {
+                    if (key !== 'iteration') {
+                        const dataset = {
+                            label: key,
+                            backgroundColor: getRandomColor(),
+                            borderColor: getRandomColor(),
+                            data: [],
+                            fill: false,
+                        };
+                        config.data.datasets.push(dataset);
+                    }
+                }
+            }
+
+            // Push the new data to the datasets
+            for (const dataset of config.data.datasets) {
+                const key = dataset.label;
+                const values = newData.map(item => item[key]);
+                dataset.data.push(...values);
+            }
+
+            // Update the chart
+            lineChart.update();
+
+            // Store the received data
+            allSensorData = allSensorData.concat(newData);
+
+            // Populate the sensor dropdown with options from the received data (first data only)
+            if (allSensorData.length === newData.length) {
+                const sensorDropdown = document.getElementById('sensor-dropdown');
+                for (const key in newData[0]) {
+                    if (key !== 'iteration') {
+                        const option = document.createElement('option');
+                        option.value = key;
+                        option.text = key;
+                        sensorDropdown.appendChild(option);
+                    }
+                }
+            }
+        }
+
+        // Function to generate random colors
+        function getRandomColor() {
+            return `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+        }
+
+        // Function to update the chart based on selected sensors
+        function updateChart(selectedSensors) {
+            const filteredData = allSensorData.map(item => {
+                const filteredItem = { iteration: item.iteration };
+                for (const sensor of selectedSensors) {
+                    filteredItem[sensor] = item[sensor];
+                }
+                return filteredItem;
+            });
+
+            // Clear existing data
+            config.data.labels = [];
+            for (const dataset of config.data.datasets) {
+                dataset.data = [];
+            }
+
+            // Update the chart with filtered data
+            for (const dataset of config.data.datasets) {
+                const key = dataset.label;
+                const values = filteredData.map(item => item[key]);
+                dataset.data.push(...values);
+            }
+
+            lineChart.update();
+        }
+
+        // Event listener for sensor dropdown change
+        const sensorDropdown = document.getElementById('sensor-dropdown');
+        sensorDropdown.addEventListener('change', function () {
+            const selectedOptions = Array.from(sensorDropdown.selectedOptions, option => option.value);
+            updateChart(selectedOptions);
+        });
+    });
+</script>
+</body>
+</html>

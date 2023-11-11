@@ -29,8 +29,8 @@ SensorState generateFakeSensorState(uint32_t iteration) {
     strcpy(sensorState.datestamp, datestamp.str().c_str());
 
     // Generate other fake data
-    sensorState.timeSinceBrewStart = randomFloat(0.0f, 600000.0f); // Random value within a range
-    sensorState.timeSinceSystemStart = randomFloat(0.0f, 600000.0f);
+    sensorState.timeSinceBrewStart = randomFloat(0.0f, 60.0f); // Random value within a range
+    sensorState.timeSinceSystemStart = randomFloat(0.0f, 100.0f);
     sensorState.brewSwitchState = (randomFloat(0.0f, 1.0f) > 0.5f); // Random boolean
     sensorState.steamSwitchState = (randomFloat(0.0f, 1.0f) > 0.5f);
     sensorState.hotWaterSwitchState = (randomFloat(0.0f, 1.0f) > 0.5f);
@@ -38,14 +38,14 @@ SensorState generateFakeSensorState(uint32_t iteration) {
     sensorState.scalesPresent = (randomFloat(0.0f, 1.0f) > 0.5f);
     sensorState.tarePending = (randomFloat(0.0f, 1.0f) > 0.5f);
     sensorState.temperature = randomFloat(0.0f, 100.0f); // Random float within a range
-    sensorState.waterTemperature = randomFloat(0.0f, 100.0f);
-    sensorState.pressure = randomFloat(0.0f, 10.0f);
+    sensorState.waterTemperature = randomFloat(0.0f, 120.0f);
+    sensorState.pressure = randomFloat(0.0f, 12.0f);
     sensorState.pressureChangeSpeed = randomFloat(-10.0f, 10.0f);
     sensorState.pumpFlow = randomFloat(0.0f, 100.0f);
     sensorState.pumpFlowChangeSpeed = randomFloat(-10.0f, 10.0f);
-    sensorState.waterPumped = randomFloat(0.0f, 10000.0f);
+    sensorState.waterPumped = randomFloat(0.0f, 100.0f);
     sensorState.weightFlow = randomFloat(0.0f, 100.0f);
-    sensorState.weight = randomFloat(0.0f, 1000.0f);
+    sensorState.weight = randomFloat(0.0f, 100.0f);
     sensorState.shotWeight = randomFloat(0.0f, 100.0f);
     sensorState.smoothedPressure = randomFloat(0.0f, 10.0f);
     sensorState.smoothedPumpFlow = randomFloat(0.0f, 100.0f);
@@ -385,7 +385,7 @@ while (true) {
         std::chrono::milliseconds elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
         // Calculate the time remaining to sleep for approximately 1 second
-        std::chrono::milliseconds sleep_time(1000); // 1 second
+        std::chrono::milliseconds sleep_time(100); // 100 msec
         std::chrono::milliseconds remaining_time = sleep_time - elapsed_time;
 
         if (remaining_time.count() > 0) {
@@ -396,8 +396,9 @@ while (true) {
 }
 
 int main() {
+    system("rm -rf rm /tmp/mydb.sqlite");
     BrewDBClass& brewDB = BrewDBClass::getInstance();
-
+   
     // Initialize the database and tables
     brewDB.Initialize();
 
