@@ -3,6 +3,7 @@
   Released into the public domain.
 */
 #include <stddef.h>
+#include<algorithm> 
 #include <math.h>
 #include "Arduino.h"
 #include "SmoothTempSensor.h"

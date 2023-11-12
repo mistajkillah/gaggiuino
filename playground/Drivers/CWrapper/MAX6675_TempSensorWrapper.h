@@ -3,9 +3,9 @@
 
 // Define a C struct to represent the MAX6675_TempSensor (equivalent to C++ class)
 typedef struct MAX6675_TempSensorWrapper MAX6675_TempSensorWrapper;
-
+typedef struct SpiDeviceLinuxWrapper SpiDeviceLinuxWrapper;
 // Create an instance of the MAX6675_TempSensor (equivalent to constructor)
-MAX6675_TempSensorWrapper* MAX6675_TempSensor_Create(const char* spiDeviceName);
+MAX6675_TempSensorWrapper* MAX6675_TempSensor_Create(SpiDeviceLinuxWrapper * spiDevice, const char* spiDeviceName) ;
 
 // Destroy an instance of the MAX6675_TempSensor (equivalent to destructor)
 void MAX6675_TempSensor_Destroy(MAX6675_TempSensorWrapper* sensor);

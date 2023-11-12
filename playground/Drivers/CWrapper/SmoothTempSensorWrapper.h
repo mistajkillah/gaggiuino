@@ -1,6 +1,7 @@
 #pragma once
 // Define a C struct to represent the SmoothTempSensor (equivalent to C++ class)
 typedef struct SmoothTempSensorWrapper SmoothTempSensorWrapper;
+typedef struct TempSensorWrapper TempSensorWrapper;
 
 // Create an instance of the SmoothTempSensor (equivalent to constructor)
 SmoothTempSensorWrapper* SmoothTempSensor_Create(TempSensorWrapper* origin, int smoothingFactor);

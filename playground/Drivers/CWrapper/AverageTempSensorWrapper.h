@@ -3,6 +3,7 @@
 // Define a C struct to represent the AverageTempSensor (equivalent to C++ class)
 typedef struct AverageTempSensorWrapper AverageTempSensorWrapper;
 
+typedef struct TempSensorWrapper TempSensorWrapper;
 // Create an instance of the AverageTempSensor (equivalent to constructor)
 AverageTempSensorWrapper* AverageTempSensor_Create(TempSensorWrapper* origin, int readingsNumber, int delayTimeInMillis);
 

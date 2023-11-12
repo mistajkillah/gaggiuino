@@ -25,10 +25,10 @@ void destroyADS1X15Wrapper(ADS1X15Wrapper* instance);
 void resetADS1X15Wrapper(ADS1X15Wrapper* instance);
 
 // Function to initialize the ADS1X15Wrapper
-bool beginADS1X15Wrapper(ADS1X15Wrapper* instance);
+int beginADS1X15Wrapper(ADS1X15Wrapper* instance);
 
 // Function to check if the ADS1X15Wrapper is connected
-bool isConnectedADS1X15Wrapper(ADS1X15Wrapper* instance);
+int isConnectedADS1X15Wrapper(ADS1X15Wrapper* instance);
 
 // Function to set the gain of the ADS1X15Wrapper
 void setGainADS1X15Wrapper(ADS1X15Wrapper* instance, uint8_t gain);
@@ -58,10 +58,10 @@ int16_t readADCDifferentialADS1X15Wrapper(ADS1X15Wrapper* instance, uint8_t posi
 void requestADCADS1X15Wrapper(ADS1X15Wrapper* instance, uint8_t pin);
 
 // Function to check if the ADS1X15Wrapper is busy (asynchronous mode)
-bool isBusyADS1X15Wrapper(ADS1X15Wrapper* instance);
+int isBusyADS1X15Wrapper(ADS1X15Wrapper* instance);
 
 // Function to check if the ADS1X15Wrapper is ready (asynchronous mode)
-bool isReadyADS1X15Wrapper(ADS1X15Wrapper* instance);
+int isReadyADS1X15Wrapper(ADS1X15Wrapper* instance);
 
 // Function to get the last requested pin (asynchronous mode)
 uint8_t lastRequestADS1X15Wrapper(ADS1X15Wrapper* instance);

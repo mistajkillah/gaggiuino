@@ -33,11 +33,11 @@ void resetADS1X15Wrapper(ADS1X15Wrapper* instance) {
     }
 }
 
-bool beginADS1X15Wrapper(ADS1X15Wrapper* instance) {
+int beginADS1X15Wrapper(ADS1X15Wrapper* instance) {
     return (instance && instance->ads1x15->begin());
 }
 
-bool isConnectedADS1X15Wrapper(ADS1X15Wrapper* instance) {
+int isConnectedADS1X15Wrapper(ADS1X15Wrapper* instance) {
     return (instance && instance->ads1x15->isConnected());
 }
 
