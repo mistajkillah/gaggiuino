@@ -8,7 +8,7 @@
  */
 #include <unistd.h>
 #include <assert.h>
-#include "GenergicDrivers.h"
+#include "GenericDrivers.h"
 #include "Gpio.h"
 
 //#define BETWEEN_START_STOP_SLEEP 500000
@@ -105,10 +105,10 @@ Gpio::~Gpio()
 GenericDriverStatus Gpio::reset()
 {
     GenericDriverStatus status = GenericDriverStatus_Success;
-    tmprintf_m(TMSK_i2c, "GPIO Pin Resets: %x \n" , (int)pinResets);
+    LOG_MASK_I2C( "GPIO Pin Resets: %x \n" , (int)pinResets);
     if (GenericDriverStatus_Success == (status =write(pinResets)))
     {
-        tmprintf_m(TMSK_i2c, "Now Configuring \n");
+        LOG_MASK_I2C( "Now Configuring \n");
         return configure();
     }  
     return status;

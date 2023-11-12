@@ -4,7 +4,7 @@
 */
 #include <stddef.h>
 #include "Arduino.h"
-#include "GenergicDrivers.h"
+#include "GenericDrivers.h"
 #include "AverageTempSensor.h"
 
 AverageTempSensor::AverageTempSensor(

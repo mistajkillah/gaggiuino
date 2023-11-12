@@ -1,10 +1,11 @@
-#ifndef PSM_h
-#define PSM_h
+#pragma once
 
 class PSM
 {
 public:
-  PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode = RISING, unsigned char divider = 1, unsigned char interruptMinTimeDiff = 0);
+static const int FALLING=1;
+static const int  RISING=0;
+  PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode = PSM::RISING, unsigned char divider = 1, unsigned char interruptMinTimeDiff = 0);
 
   void set(unsigned int value);
 
@@ -39,6 +40,3 @@ private:
   volatile unsigned long _lastMillis;
 };
 
-extern PSM* _thePSM;
-
-#endif

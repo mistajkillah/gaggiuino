@@ -1,26 +1,15 @@
 #pragma once
 
-#include <mutex>
-#include "GenergicDrivers.h"
+
+#include "GenericDrivers.h"
 
 
-
-extern unsigned int I2C_BUS_CONFIG;
-
-
-/**
- * Abstract base class for I2C buses. Derived classes are:
- *      I2cBusLinux - Bus accessed by Linux driver.
- *      I2cBusFpga  - Bus accessed by FPGA registers.
- */
 class I2cBus
 {    const char *__class__ = "I2cBus";
 
 public:
 
-    /*
-     * Bus lock class.
-     */
+
     class Lock : public std::unique_lock<std::recursive_mutex>
     {
         const char* __class__ = "I2cBus::Lock";

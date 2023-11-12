@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <thread>
 #include "Arduino.h"
-#include "GenergicDrivers.h"
+#include "GenericDrivers.h"
 #include "I2cBus.h"
 #include "ADS1X15.h"
 

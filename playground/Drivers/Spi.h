@@ -1,5 +1,5 @@
 #pragma once
-#include "GenergicDrivers.h"
+#include "GenericDrivers.h"
 class SpiBusAbstract
 {
 public:
@@ -16,10 +16,6 @@ class SpiBus : public SpiBusAbstract
   const char* __class__ = "SpiBus";
 
 public:
-
-  //typedef FpgaRegister::FpgaAddr FpgaAddr;
-  //typedef FpgaRegister::FpgaData FpgaData;
-
   /*
    * Bus lock class.
    */

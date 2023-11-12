@@ -1,8 +1,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#define FALLING 1
-#define RISING 0
+
 #define LOW 0
 #define HIGH 1
 #define INPUT PI_INPUT

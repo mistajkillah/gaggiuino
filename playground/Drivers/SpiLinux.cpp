@@ -1,4 +1,4 @@
-#include "GenergicDrivers.h"
+#include "GenericDrivers.h"
 #include "spidev_lib++.h"
 #include "SpiLinux.h"
 

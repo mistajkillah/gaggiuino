@@ -12,8 +12,8 @@ SpiBus::Lock::Lock(SpiBus* bus) :
   bus(bus) {
 
   lock(); //try_lock() //todo
-  tmindent(TMSK_spi);
-  tmprintf_m(TMSK_spi, "bus=%s, acquired=%d\n", bus->name, owns_lock());
+  
+  LOG_MASK_SPI( "bus=%s, acquired=%d\n", bus->_name, owns_lock());
 }
 
 
@@ -23,6 +23,6 @@ SpiBus::Lock::Lock(SpiBus* bus) :
  *
  */
 SpiBus::Lock::~Lock() {
-  tmindent(TMSK_spi);
-  tmprintf_m(TMSK_spi, "bus=%s\n", bus->name);
+  
+  LOG_MASK_SPI( "bus=%s\n", bus->_name);
 }
