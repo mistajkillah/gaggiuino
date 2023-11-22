@@ -1,8 +1,8 @@
-# Define the C++ compiler
-CXX = g++
+# Define the C++ compiler (Clang)
+CXX = clang++
 
 # Compiler flags for C++
-CXXFLAGS = -Wall -O0 -ggdb3
+CXXFLAGS = -Wall -O0 -ggdb3 -shared -fPIC
 
 # Source files
 CXX_SRCS = AverageTempSensor.cpp MAX6675_TempSensor.cpp SmoothTempSensor.cpp Spi.cpp spidev_lib++.cc I2cBusLinux.cpp SpiLinux.cpp ADS1X15.cpp Arduino.cpp
@@ -20,7 +20,7 @@ HEADERS += CWrapper/I2cBusLinuxWrapper.h CWrapper/ADS1X15Wrapper.h CWrapper/PSMW
 HEADERS += CWrapper/TempSensorWrapper.h CWrapper/AverageTempSensorWrapper.h
 
 # Library name
-LIB = libGenericDrivers.a
+LIB = libGenericDrivers.so
 
 # Rust Bindings generation settings
 RUST_BINDINGS_DIR = ./src/generated
@@ -39,9 +39,9 @@ RUST_BINDINGS_BUILD_DIR = target/bindings
 %.o: %.c $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Rule to create the static library
+# Rule to create the shared object
 $(LIB): $(CXX_OBJS) $(CW_OBJS)
-	ar rcs $@ $(CXX_OBJS) $(CW_OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^
 
 # Phony targets
 .PHONY: all clean
@@ -53,13 +53,12 @@ all: $(LIB)
 clean:
 	rm -f $(CXX_OBJS) $(CW_OBJS) $(LIB)
 
-# # Rust Bindings generation
-# generate_bindings: $(HEADERS)
-# 	bindgen --output $(RUST_BINDINGS_SRC) --builtins -- -Itarget/debug/GenericDrivers $(filter %.h, $^)
-# generate_bindings:
-# 	bindgen --output $(RUST_BINDINGS_SRC) --builtins -- -Itarget/debug/GenericDrivers $(addprefix -I, $(RUST_BINDINGS_BUILD_DIR)) $(addprefix -I, CWrapper) $(HEADERS)
- generate_bindings:
-# 	$(foreach header,$(HEADERS),bindgen --output $(RUST_BINDINGS_DIR)/$(notdir $(header:.h=.rs)) $(header) -- $(addprefix -I, $(RUST_BINDINGS_BUILD_DIR)) $(addprefix -I, CWrapper);)
+# Create the 'generated' directory
+create_generated_dir:
+	mkdir -p $(RUST_BINDINGS_DIR)
+
+# Rust Bindings generation
+generate_bindings: create_generated_dir
 	$(foreach header,$(filter CWrapper/%.h,$(HEADERS)),bindgen --output $(RUST_BINDINGS_DIR)/$(notdir $(header:.h=.rs)) $(header) -- $(addprefix -I, $(RUST_BINDINGS_BUILD_DIR)) $(addprefix -I, CWrapper);)
 
 # Rust Build
