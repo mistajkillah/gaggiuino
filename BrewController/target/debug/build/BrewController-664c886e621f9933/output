@@ -1,0 +1,2 @@
+cargo:rustc-link-lib=GenericDrivers
+cargo:rustc-link-search=native=.

@@ -7,7 +7,9 @@
 #include <math.h>
 #include "Arduino.h"
 #include "SmoothTempSensor.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 SmoothTempSensor::SmoothTempSensor(
   TempSensor* origin,
   const int smoothingFactor
@@ -53,5 +55,8 @@ double SmoothTempSensor::smoothe(
   https://www.arduino.cc/reference/en/language/functions/math/max/
 */
 inline void SmoothTempSensor::setSmoothingFactor(const int smoothingFactor) {
-  this->smoothingFactor = std::max(smoothingFactor, MIN_SMOOTHING_FACTOR);
+  this->smoothingFactor = std::max(smoothingFactor, 2);
 }
+#ifdef __cplusplus
+}
+#endif

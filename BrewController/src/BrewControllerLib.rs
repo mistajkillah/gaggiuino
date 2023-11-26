@@ -4,6 +4,14 @@
 // Import the SimpleKalmanFilter module
 extern crate rust_pigpio;
 use ::function_name::named;
+// In your Rust source files (e.g., src/main.rs)
+mod GenericDrivers {
+    include!("PSMWrapper.rs"); // Include the generated bindings
+    include!("I2cBusLinuxWrapper.rs"); // Include the generated bindings
+    include!("ADS1X15Wrapper.rs");
+}
+
+//extern crate function_name::named;
 use crate::BrewDBLib::BrewDBClass;
 use crate::SimpleKalmanFilterLib::SimpleKalmanFilter;
 use crate::LoggerLib::Logger;
@@ -22,6 +30,9 @@ pub struct BrewController {
     _steamPin:u32,
     _valvePin:u32,
     _waterPin:u32,
+    _PSMHandle:GenericDrivers::PSMHandle,
+    _I2cBus1Handle:GenericDrivers::I2cBusLinuxWrapperHandle,
+    _TempSensorHandle:GenericDrivers::ADS1X15Wrapper
 }
 
 
@@ -105,6 +116,9 @@ impl BrewController {
              _steamPin:5,
              _valvePin:6,
              _waterPin:7,
+             _PSMHandle:std::ptr::null_mut(),
+             _I2cBus1Handle:std::ptr::null_mut(),
+             _TempSensorHandle:std::ptr::null_mut(),
         }
     }
 
@@ -135,13 +149,15 @@ impl BrewController {
 
 
     }
-    fn log(message: &str)
+    fn log(&mut self,message: &str)
     {
         Logger::get_instance().log_info( message);
     }
+
+    #[named]
     pub fn Initialize(&mut self)
     {
-        log(function_name!());
+        self.log( function_name!());//
         self._smooth_pressure = Some(SimpleKalmanFilter::new(0.6, 0.6, 0.1));
         self._smooth_pump_flow = Some(SimpleKalmanFilter::new(0.1, 0.1, 0.01));
         self._smooth_scales_flow = Some(SimpleKalmanFilter::new(0.5, 0.5, 0.01));
@@ -150,7 +166,38 @@ impl BrewController {
         self._mySensorState = Some(SensorState::new());
         let response: Result<u32, String>=rust_pigpio::initialize();
 
-        rust_pigpio::set_mode(self._brewPin, rust_pigpio::OUTPUT);
+        rust_pigpio::set_mode(self._boilerRelayPin, rust_pigpio::OUTPUT);
+        
+        rust_pigpio::set_mode(self._valvePin, rust_pigpio::OUTPUT);
+        
+        rust_pigpio::set_mode(self._waterPin, rust_pigpio::INPUT);        
+        rust_pigpio::set_mode(self._brewPin, rust_pigpio::INPUT);
+        rust_pigpio::set_mode(self._steamPin, rust_pigpio::INPUT);
+        
+        
+        rust_pigpio::set_mode(self._dimmerPin, rust_pigpio::OUTPUT);        
+        rust_pigpio::set_mode(self._zCPin, rust_pigpio::INPUT);
+
+        let sense:u8=self._zCPin.try_into().unwrap();
+        let control:u8=self._dimmerPin.try_into().unwrap();
+        let range:u32=100;
+        let mode:i32=100;
+        let divider:u8=100;
+        let intrupt:u8=6;
+   
+        let mut result= unsafe{
+            self._PSMHandle= GenericDrivers::PSM_Create(sense,control,range,mode,divider,intrupt);
+            GenericDrivers::PSM_Destroy(self._PSMHandle);
+        };
+        result= unsafe{
+            self._I2cBus1Handle= GenericDrivers::I2cBusLinuxWrapper_Create(0,"i2c_0".as_ptr());        
+            GenericDrivers::I2cBusLinuxWrapper_Destroy(self._I2cBus1Handle);    
+        };
+        result= unsafe{
+            self._TempSensorHandle= GenericDrivers::createADS1X15Wrapper(self._I2cBus1Handle, 0x00, "TempSensor".as_ptr());     
+            GenericDrivers::destroyADS1X15Wrapper(self._TempSensorHandle);    
+        };
+
 
     }
 }

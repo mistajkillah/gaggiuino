@@ -2,6 +2,10 @@
 #include "PSMWrapper.h"
 #include "../PSM.h" // Include the original C++ header
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Function to create a PSM instance
 PSMHandle PSM_Create(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode, unsigned char divider, unsigned char interruptMinTimeDiff) {
     // Allocate memory for the PSM instance
@@ -95,3 +99,7 @@ void PSM_Destroy(PSMHandle handle) {
     }
 }
 
+
+#ifdef __cplusplus
+}
+#endif

@@ -33,16 +33,17 @@
   Created by Yurii Salimov, May, 2019.
   Released into the public domain.
 */
-#ifndef SMOOTH_TempSensor_H
-#define SMOOTH_TempSensor_H
+#pragma once
 
 #include "TempSensor.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 class SmoothTempSensor final : public TempSensor {
 
   private:
     // Minimum smoothing factor.
-    static const int MIN_SMOOTHING_FACTOR = 2;
+    //static const int MIN_SMOOTHING_FACTOR = 2;
 
     TempSensor* origin;
     int smoothingFactor;
@@ -59,7 +60,7 @@ class SmoothTempSensor final : public TempSensor {
     */
     SmoothTempSensor(
       TempSensor* origin,
-      int smoothingFactor = MIN_SMOOTHING_FACTOR
+      int smoothingFactor
     );
 
     /**
@@ -110,4 +111,6 @@ class SmoothTempSensor final : public TempSensor {
     inline void setSmoothingFactor(int smoothingFactor);
 };
 
+#ifdef __cplusplus
+}
 #endif

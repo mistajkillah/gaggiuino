@@ -3,7 +3,9 @@
 
 #include "GenericDrivers.h"
 
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 class I2cBus
 {    const char *__class__ = "I2cBus";
 
@@ -93,3 +95,6 @@ private:
     static I2cBus s_empty;
 };
 
+#ifdef __cplusplus
+}
+#endif

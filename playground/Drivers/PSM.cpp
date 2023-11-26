@@ -3,7 +3,9 @@
 #include <stddef.h>
 #include "Arduino.h"
 #include "PSM.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 PSM* _thePSM;
 
 PSM::PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode, unsigned char divider, unsigned char interruptMinTimeDiff) {
@@ -145,3 +147,6 @@ void PSM::setDivider(unsigned char divider) {
 void PSM::shiftDividerCounter(char value) {
   PSM::_dividerCounter += value;
 }
+#ifdef __cplusplus
+}
+#endif

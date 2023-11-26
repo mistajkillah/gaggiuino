@@ -1,6 +1,8 @@
 #include <mutex>
 #include "I2cBus.h"
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 I2cBus I2cBus::s_empty("Empty");
 
@@ -27,3 +29,6 @@ I2cBus::Lock::~Lock()
     
     LOG_MASK_I2C( "bus=%s\n", bus->_name);
 }
+#ifdef __cplusplus
+}
+#endif

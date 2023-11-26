@@ -1,5 +1,7 @@
 #pragma once
-
+#ifdef __cplusplus
+extern "C" {
+#endif
 class PSM
 {
 public:
@@ -39,4 +41,6 @@ private:
   volatile long _stopAfter;
   volatile unsigned long _lastMillis;
 };
-
+#ifdef __cplusplus
+}
+#endif

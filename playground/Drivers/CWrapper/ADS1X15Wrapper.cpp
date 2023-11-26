@@ -5,51 +5,45 @@
 #include "ADS1X15Wrapper.h"
 
 
-struct ADS1X15Wrapper {
-    ADS1X15* ads1x15;
-};
 
-ADS1X15Wrapper* createADS1X15Wrapper(I2cBusLinuxWrapper* bus, uint8_t devAddr, const char* name) {
-    ADS1X15Wrapper* wrapper = (ADS1X15Wrapper*)malloc(sizeof(ADS1X15Wrapper));
-    if (wrapper) {
-        // Cast the I2cBusLinuxWrapper pointer to I2cBus*
-        I2cBus* busPtr = (I2cBus*)bus;
-        wrapper->ads1x15 = new ADS1X15(busPtr, devAddr, name);
-    }
+
+ADS1X15Wrapper createADS1X15Wrapper(I2cBusLinuxWrapperHandle bus, uint8_t devAddr, const char* name) {
+    ADS1X15Wrapper wrapper = (ADS1X15Wrapper)new ADS1X15((I2cBus*)bus, devAddr, name);
+
     return wrapper;
 }
 
 
-void destroyADS1X15Wrapper(ADS1X15Wrapper* instance) {
+void destroyADS1X15Wrapper(ADS1X15Wrapper instance) {
     if (instance) {
-        delete instance->ads1x15;
+        delete instance;
         free(instance);
     }
 }
 
-void resetADS1X15Wrapper(ADS1X15Wrapper* instance) {
+void resetADS1X15Wrapper(ADS1X15Wrapper instance) {
     if (instance) {
-        instance->ads1x15->reset();
+        ((ADS1X15*)instance)->reset();
     }
 }
 
-int beginADS1X15Wrapper(ADS1X15Wrapper* instance) {
-    return (instance && instance->ads1x15->begin());
+int beginADS1X15Wrapper(ADS1X15Wrapper instance) {
+    return (instance && ((ADS1X15*)instance)->begin());
 }
 
-int isConnectedADS1X15Wrapper(ADS1X15Wrapper* instance) {
-    return (instance && instance->ads1x15->isConnected());
+int isConnectedADS1X15Wrapper(ADS1X15Wrapper instance) {
+    return (instance && ((ADS1X15*)instance)->isConnected());
 }
 
-void setGainADS1X15Wrapper(ADS1X15Wrapper* instance, uint8_t gain) {
+void setGainADS1X15Wrapper(ADS1X15Wrapper instance, uint8_t gain) {
     if (instance) {
-        instance->ads1x15->setGain(gain);
+        ((ADS1X15*)instance)->setGain(gain);
     }
 }
 
-uint8_t getGainADS1X15Wrapper(ADS1X15Wrapper* instance) {
+uint8_t getGainADS1X15Wrapper(ADS1X15Wrapper instance) {
     if (instance) {
-        return instance->ads1x15->getGain();
+        return ((ADS1X15*)instance)->getGain();
     }
     return 0xFF; // Invalid gain error
 }
