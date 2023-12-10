@@ -1,3 +1,4 @@
+#![allow(warnings)]
 // // extern crate chrono;
 //  use std::thread; // Import the thread module
 //  mod BrewDBClass;
@@ -14,7 +15,7 @@
 // use BrewDBClass::SensorState;
 // use BrewDBClass::SensorStateSnapshot;
 // use rusqlite::Result; // Import Result type from rusqlite
-#[allow(non_snake_case)]
+//#[allow(non_snake_case)]
 //use std::sync::{Mutex, Once};
 use std::process::Command;
 extern crate chrono;

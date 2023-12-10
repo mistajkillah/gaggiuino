@@ -1,4 +1,5 @@
-#[allow(non_snake_case)]
+//#[allow(non_snake_case)]
+//#![allow(warnings)]
 extern crate chrono;
 extern crate rand;
 extern crate rusqlite;

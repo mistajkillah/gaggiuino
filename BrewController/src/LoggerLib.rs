@@ -1,3 +1,4 @@
+#![allow(warnings)]
 use std::sync::{Mutex, Once};
 
 // Define constants for log levels

@@ -7,7 +7,7 @@
 
 
 
-ADS1X15Wrapper createADS1X15Wrapper(I2cBusLinuxWrapperHandle bus, uint8_t devAddr, const char* name) {
+ADS1X15Wrapper createADS1X15Wrapper(I2cBusLinuxWrapperHandle bus, char devAddr, const char* name) {
     ADS1X15Wrapper wrapper = (ADS1X15Wrapper)new ADS1X15((I2cBus*)bus, devAddr, name);
 
     return wrapper;
@@ -16,7 +16,7 @@ ADS1X15Wrapper createADS1X15Wrapper(I2cBusLinuxWrapperHandle bus, uint8_t devAdd
 
 void destroyADS1X15Wrapper(ADS1X15Wrapper instance) {
     if (instance) {
-        delete instance;
+        //delete instance;
         free(instance);
     }
 }
@@ -35,13 +35,13 @@ int isConnectedADS1X15Wrapper(ADS1X15Wrapper instance) {
     return (instance && ((ADS1X15*)instance)->isConnected());
 }
 
-void setGainADS1X15Wrapper(ADS1X15Wrapper instance, uint8_t gain) {
+void setGainADS1X15Wrapper(ADS1X15Wrapper instance, char gain) {
     if (instance) {
         ((ADS1X15*)instance)->setGain(gain);
     }
 }
 
-uint8_t getGainADS1X15Wrapper(ADS1X15Wrapper instance) {
+char getGainADS1X15Wrapper(ADS1X15Wrapper instance) {
     if (instance) {
         return ((ADS1X15*)instance)->getGain();
     }

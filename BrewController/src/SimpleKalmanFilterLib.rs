@@ -1,3 +1,4 @@
+//#![allow(warnings)]
 pub struct SimpleKalmanFilter {
     err_measure: f32,
     err_estimate: f32,

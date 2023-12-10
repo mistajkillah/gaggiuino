@@ -12,7 +12,7 @@ I2cBusLinuxWrapperHandle I2cBusLinuxWrapper_Create(int busId, const char* name) 
 
 void I2cBusLinuxWrapper_Destroy(I2cBusLinuxWrapperHandle instance) {
     if (instance) {
-        delete instance;
+        //delete instance;
         free(instance);
     }
 }

@@ -1,3 +1,4 @@
+#![allow(warnings)]
 //use SimpleKalmanFilter;
 //mod SimpleKalmanFilterLib;
 //use SimpleKalmanFilter;
@@ -8,7 +9,12 @@ use ::function_name::named;
 mod GenericDrivers {
     include!("PSMWrapper.rs"); // Include the generated bindings
     include!("I2cBusLinuxWrapper.rs"); // Include the generated bindings
-    include!("ADS1X15Wrapper.rs");
+    include!("ADS1X15Wrapper.rs");    
+    include!("SpiLinuxWrapper.rs");
+    include!("MAX6675_TempSensorWrapper.rs");
+    include!("SmoothTempSensorWrapper.rs");
+    include!("AverageTempSensorWrapper.rs");
+    include!("SimpleKalmanFilterLib.rs");
 }
 
 //extern crate function_name::named;
@@ -190,11 +196,11 @@ impl BrewController {
             GenericDrivers::PSM_Destroy(self._PSMHandle);
         };
         result= unsafe{
-            self._I2cBus1Handle= GenericDrivers::I2cBusLinuxWrapper_Create(0,"i2c_0".as_ptr());        
+            self._I2cBus1Handle= GenericDrivers::I2cBusLinuxWrapper_Create(0,"i2c_0".as_ptr() as *const i8);        
             GenericDrivers::I2cBusLinuxWrapper_Destroy(self._I2cBus1Handle);    
         };
         result= unsafe{
-            self._TempSensorHandle= GenericDrivers::createADS1X15Wrapper(self._I2cBus1Handle, 0x00, "TempSensor".as_ptr());     
+            self._TempSensorHandle= GenericDrivers::createADS1X15Wrapper(self._I2cBus1Handle, 0x00, "TempSensor".as_ptr() as * const i8);     
             GenericDrivers::destroyADS1X15Wrapper(self._TempSensorHandle);    
         };
 
