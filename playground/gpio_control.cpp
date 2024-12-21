@@ -37,16 +37,17 @@ void ReadADC()
 //   printf("Analog1: 0x%X  %f\n",val_1,val_1 * f);
 //   printf("Analog2: 0x%X  %f\n",val_2,val_2* f);
 //   printf("Analog3: 0x%X  %f\n",val_3,val_3 * f);  
-// }
+ }
 
-// void ReadTemp()
-// {
+ void ReadTemp()
+ {
   
 //   SpiDeviceLinux  spiDevice(0,0,4000000,8,1000,0,"SpiDevice0.0");
 //   MAX6675_TempSensor tempSensor(&spiDevice,"BoilerTemp");
 //   printf("Temperature %lf\n",tempSensor.readCelsius());
-// }
-int main() {
+ }
+int main(int argc, char*agv[]) 
+{
   ReadTemp();
   return 0;
 
