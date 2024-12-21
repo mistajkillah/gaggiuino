@@ -3,13 +3,13 @@
 # Compiler and linker configurations
 CXX = g++
 CXXFLAGS = -I./Drivers -Wall -ggdb3 -O0
-LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt 
+LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread
 
 # Target binary
 TARGET = brewController
 
 # Source files
-SRC = main.cpp BrewHW.cpp BrewFSM.cpp SystemFSM.cpp
+SRC = main.cpp BrewHW.cpp BrewFSM.cpp SystemFSM.cpp BrewDB.cpp
 OBJ = $(SRC:.cpp=.o)
 
 # Default target

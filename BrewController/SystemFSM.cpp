@@ -1,9 +1,25 @@
+#include <iostream>
+#include <sstream>
+#include <iostream>
+#include <cstring>
+#include <sqlite3.h>
+#include <string>
+#include <thread>
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <mutex>
+#include <random>
+#include "SensorStructs.h"
 #include "BrewHW.h"
 #include "BrewFSM.h"
-#include "SystemFSM.h"
-#include <iostream>
+#include "BrewDB.h"
 
-SystemFSM::SystemFSM() : hw(*(new BrewHW())), brewFSM(*(new BrewFSM())) ,currentState(SystemState::Initialize) 
+#include "SystemFSM.h"
+
+
+
+SystemFSM::SystemFSM() : hw(BrewHW::getInstance()), brewFSM(*(new BrewFSM())) ,currentState(SystemState::Initialize) 
 {
 
 }
@@ -11,6 +27,13 @@ SystemFSM::SystemFSM() : hw(*(new BrewHW())), brewFSM(*(new BrewFSM())) ,current
 void SystemFSM::handleInitialize() {
     std::cout << "System is initializing..." << std::endl;
     // Transition to BrewSetup after initialization
+
+    system("rm -rf rm /tmp/mydb.sqlite");
+    BrewDB& brewDB = BrewDB::getInstance();
+   
+    //Initialize the database and tables
+    brewDB.Initialize();
+    hw.initializeHW();
     currentState = SystemState::BrewSetup;
 }
 
@@ -28,6 +51,7 @@ void SystemFSM::handleBrewSetup() {
 void SystemFSM::handleBrew() {
     std::cout << "Brewing process started..." << std::endl;
     // Transition to ControlLoop after brewing starts
+    brewFSM.run();
     currentState = SystemState::BrewSetup;
 }
 
