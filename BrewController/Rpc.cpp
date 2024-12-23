@@ -1,4 +1,4 @@
-
+#include "RPC.h"
 #include <iostream>
 #include <sstream>
 #include <thread>
@@ -6,16 +6,30 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include "Rpc.h"
-RPC::RPC(int port) : port(port), serverSocket(-1) {}
+#include <atomic>
+
+RPC::RPC(int port) : port(port), serverSocket(-1), running(false) {}
 
 RPC::~RPC() {
+    stop();
     if (serverSocket >= 0) {
         close(serverSocket);
     }
 }
 
 void RPC::start() {
+    running = true;
+    serverThread = std::thread(&RPC::runServer, this);
+}
+
+void RPC::stop() {
+    running = false;
+    if (serverThread.joinable()) {
+        serverThread.join();
+    }
+}
+
+void RPC::runServer() {
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
         throw std::runtime_error("Error creating socket.");
@@ -36,17 +50,22 @@ void RPC::start() {
 
     std::cout << "Server listening on port " << port << "..." << std::endl;
 
-    while (true) {
+    while (running) {
         sockaddr_in clientAddr;
         socklen_t clientLen = sizeof(clientAddr);
         int clientSocket = accept(serverSocket, (sockaddr *)&clientAddr, &clientLen);
         if (clientSocket < 0) {
-            std::cerr << "Error accepting connection." << std::endl;
+            if (running) {
+                std::cerr << "Error accepting connection." << std::endl;
+            }
             continue;
         }
 
         std::thread(&RPC::handleClient, this, clientSocket).detach();
     }
+
+    close(serverSocket);
+    serverSocket = -1;
 }
 
 void RPC::handleClient(int clientSocket) {
@@ -88,7 +107,7 @@ std::string RPC::processCommand(const std::string &jsonInput) {
 
     std::istringstream iss(jsonInput);
     if (!Json::parseFromStream(readerBuilder, iss, &root, &errs)) {
-        return R"({"command": "error", "response": ["Invalid JSON"]})";
+        return R"({"command": "error", "command_id": -1, "response": ["Invalid JSON"]})";
     }
 
     std::string error;
