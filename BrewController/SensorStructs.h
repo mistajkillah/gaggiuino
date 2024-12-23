@@ -1,6 +1,6 @@
 
 #pragma once
-
+#include <string>
 struct SensorState {
     uint32_t iteration;
     char datestamp[30]; // MMDDYYYY:HH:MM:SS:MS:USEC
@@ -29,6 +29,41 @@ struct SensorState {
     long pumpClicks;
     uint16_t waterLvl;
     bool tofReady;
+
+    std::string& toString()
+{
+    static std::string result;
+    std::ostringstream oss;
+    oss << "Iteration: " << iteration << "\n";
+    oss << "Datestamp: " << datestamp << "\n";
+    oss << "Time Since Brew Start: " << timeSinceBrewStart << " ms\n";
+    oss << "Time Since System Start: " << timeSinceSystemStart << " ms\n";
+    oss << "Brew Switch State: " << brewSwitchState << "\n";
+    oss << "Steam Switch State: " << steamSwitchState << "\n";
+    oss << "Hot Water Switch State: " << hotWaterSwitchState << "\n";
+    oss << "Is Steam Forgotten ON: " << isSteamForgottenON << "\n";
+    oss << "Scales Present: " << scalesPresent << "\n";
+    oss << "Tare Pending: " << tarePending << "\n";
+    oss << "Temperature: " << temperature << " °C\n";
+    oss << "Water Temperature: " << waterTemperature << " °C\n";
+    oss << "Pressure: " << pressure << " bar\n";
+    oss << "Pressure Change Speed: " << pressureChangeSpeed << " bar/s\n";
+    oss << "Pump Flow: " << pumpFlow << " ml/s\n";
+    oss << "Pump Flow Change Speed: " << pumpFlowChangeSpeed << " ml/s²\n";
+    oss << "Water Pumped: " << waterPumped << " ml\n";
+    oss << "Weight Flow: " << weightFlow << "\n";
+    oss << "Weight: " << weight << " g\n";
+    oss << "Shot Weight: " << shotWeight << " g\n";
+    oss << "Smoothed Pressure: " << smoothedPressure << " bar\n";
+    oss << "Smoothed Pump Flow: " << smoothedPumpFlow << " ml/s\n";
+    oss << "Smoothed Weight Flow: " << smoothedWeightFlow << "\n";
+    oss << "Considered Flow: " << consideredFlow << "\n";
+    oss << "Pump Clicks: " << pumpClicks << "\n";
+    oss << "Water Level: " << waterLvl << "\n";
+    oss << "TOF Ready: " << tofReady << "\n";
+    result = oss.str();
+    return result;
+}
 };
 
 struct SensorStateSnapshot {

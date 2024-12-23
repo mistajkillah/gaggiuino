@@ -1,4 +1,4 @@
-#include "RPC.h"
+
 #include <iostream>
 #include <sstream>
 #include <thread>
@@ -7,29 +7,29 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <atomic>
+#include "Rpc.h"
+Rpc::Rpc(int port) : port(port), serverSocket(-1), running(false) {}
 
-RPC::RPC(int port) : port(port), serverSocket(-1), running(false) {}
-
-RPC::~RPC() {
+Rpc::~Rpc() {
     stop();
     if (serverSocket >= 0) {
         close(serverSocket);
     }
 }
 
-void RPC::start() {
+void Rpc::start() {
     running = true;
-    serverThread = std::thread(&RPC::runServer, this);
+    serverThread = std::thread(&Rpc::runServer, this);
 }
 
-void RPC::stop() {
+void Rpc::stop() {
     running = false;
     if (serverThread.joinable()) {
         serverThread.join();
     }
 }
 
-void RPC::runServer() {
+void Rpc::runServer() {
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket < 0) {
         throw std::runtime_error("Error creating socket.");
@@ -61,14 +61,14 @@ void RPC::runServer() {
             continue;
         }
 
-        std::thread(&RPC::handleClient, this, clientSocket).detach();
+        std::thread(&Rpc::handleClient, this, clientSocket).detach();
     }
 
     close(serverSocket);
     serverSocket = -1;
 }
 
-void RPC::handleClient(int clientSocket) {
+void Rpc::handleClient(int clientSocket) {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
 
@@ -86,7 +86,7 @@ void RPC::handleClient(int clientSocket) {
     close(clientSocket);
 }
 
-bool RPC::validateCommand(const Json::Value &command, std::string &error) {
+bool Rpc::validateCommand(const Json::Value &command, std::string &error) {
     if (!command.isMember("command") || !command["command"].isString()) {
         error = "Missing or invalid 'command'.";
         return false;
@@ -100,7 +100,7 @@ bool RPC::validateCommand(const Json::Value &command, std::string &error) {
     return true;
 }
 
-std::string RPC::processCommand(const std::string &jsonInput) {
+std::string Rpc::processCommand(const std::string &jsonInput) {
     Json::Value root;
     Json::CharReaderBuilder readerBuilder;
     std::string errs;
@@ -155,7 +155,7 @@ std::string RPC::processCommand(const std::string &jsonInput) {
     return Json::writeString(writer, response);
 }
 
-Json::Value RPC::getDebugDump() {
+Json::Value Rpc::getDebugDump() {
     Json::Value dump;
     dump["temperature"] = 25.0;
     dump["pressure"] = 101.3;
@@ -164,25 +164,25 @@ Json::Value RPC::getDebugDump() {
     return dump;
 }
 
-Json::Value RPC::getTemperature() {
+Json::Value Rpc::getTemperature() {
     Json::Value temp;
     temp["temperature"] = 25.0; // Example value
     return temp;
 }
 
-Json::Value RPC::getPressure() {
+Json::Value Rpc::getPressure() {
     Json::Value pressure;
     pressure["pressure"] = 101.3; // Example value
     return pressure;
 }
 
-Json::Value RPC::controlHeater(bool on) {
+Json::Value Rpc::controlHeater(bool on) {
     Json::Value response;
     response["heater_state"] = on ? "on" : "off";
     return response;
 }
 
-Json::Value RPC::controlPump(int seconds) {
+Json::Value Rpc::controlPump(int seconds) {
     Json::Value response;
     if (seconds <= 0) {
         response["error"] = "Invalid duration.";

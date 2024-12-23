@@ -1,7 +1,16 @@
 #pragma once
 
+#include <pigpio.h>
+#include "Arduino.h"
+#include "GenericDrivers.h"
+#include "Spi.h"
+#include "I2cBus.h"
+#include "I2cBusLinux.h"
+#include "ADS1X15.h"
 
-class Measurments;
+#include "MAX6675_TempSensor.h"
+#include "SensorStructs.h"
+//class Measurments;
 
 class BrewHW {
 public:
@@ -57,8 +66,11 @@ private:
     void calculateWeightAndFlow(void);
 
     void sensorsReadWeight(void);
+
+    float getTemperature();
+    float getPressure();
     //scales vars
-    Measurements weightMeasurements;
+    //Measurements weightMeasurements;
     // Timers
     unsigned long systemHealthTimer=0;
     unsigned long pageRefreshTimer=0;
@@ -73,8 +85,16 @@ private:
     float previousSmoothedPressure;
     float previousSmoothedPumpFlow;
 
-    SimpleKalmanFilter &smoothPressure;
-    SimpleKalmanFilter &smoothPumpFlow;
-    SimpleKalmanFilter &smoothScalesFlow;
-    SimpleKalmanFilter &smoothConsideredFlow;
+    // SimpleKalmanFilter &smoothPressure;
+    // SimpleKalmanFilter &smoothPumpFlow;
+    // SimpleKalmanFilter &smoothScalesFlow;
+    // SimpleKalmanFilter &smoothConsideredFlow;
+
+    // const int inputPin = 22;    //PIN 15 interupt pin
+    // const int outputPin = 27;   //PIN 13 response to interupt pin
+    // const int togglePin = 17;   //PIN 11 fake clock/interupt agressor
+    SpiDeviceLinux  spiDevice;
+    MAX6675_TempSensor tempSensor;
+    I2cBusLinux i2c;
+    ADS1015 adc;
 };

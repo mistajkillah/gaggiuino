@@ -28,10 +28,20 @@
 #include "Profile.h"
 #include "BrewController.h"
 #include "SensorStructs.h"
+
+#include "GenericDrivers.h"
+#include "Spi.h"
+#include "I2cBus.h"
+#include "I2cBusLinux.h"
+#include "ADS1X15.h"
+
+#include "MAX6675_TempSensor.h"
+
+#include <pigpio.h>
+#include <iostream>
+#include <sqlite3.h>
 #include "BrewDB.h"
 #include "BrewHW.h"
-
-
 //extern  BrewConfig runningCfg;
 
 // Static method to access the singleton instance
@@ -41,12 +51,16 @@ BrewHW& BrewHW::getInstance() {
 }
 
 // Private constructor
-BrewHW::BrewHW() : 
-weightMeasurements(4), 
-smoothPressure (*new SimpleKalmanFilter(0.6f, 0.6f, 0.1f)), 
-smoothPumpFlow (*new SimpleKalmanFilter(0.1f, 0.1f, 0.01f)),
-smoothScalesFlow (*new SimpleKalmanFilter(0.5f, 0.5f, 0.01f)),
-smoothConsideredFlow (*new SimpleKalmanFilter(0.1f, 0.1f, 0.1f))  
+BrewHW::BrewHW() :
+//weightMeasurements(4), 
+// smoothPressure (*new SimpleKalmanFilter(0.6f, 0.6f, 0.1f)), 
+// smoothPumpFlow (*new SimpleKalmanFilter(0.1f, 0.1f, 0.01f)),
+// smoothScalesFlow (*new SimpleKalmanFilter(0.5f, 0.5f, 0.01f)),
+// smoothConsideredFlow (*new SimpleKalmanFilter(0.1f, 0.1f, 0.1f),
+spiDevice(0,0,4000000,8,1000,0,"SpiDevice0.0"),
+tempSensor(&spiDevice,"BoilerTemp"),
+i2c(0,"i2c0"),
+adc(&i2c,"WaterTemp",0x48)
 {
 
     
@@ -79,6 +93,10 @@ int BrewHW::initializeHW() {
     // Set the callback function for the input pin
     gpioSetAlertFunc(inputPin, inputCallback);
 
+
+  adc.begin();
+  adc.setGain(0);
+
     return 0;
 }
 
@@ -110,11 +128,14 @@ SensorState BrewHW::getSensorState() {
     SensorState sensorState;
     if(SIM)
     {
-
         return db.generateFakeSensorState(i);
     }
     else{
-        
+      memset(&sensorState,0, sizeof(sensorState));
+      sensorState.steamSwitchState=steamState();
+      sensorState.brewSwitchState=brewState();
+      sensorState.pressure=getPressure();
+      sensorState.temperature=getTemperature();
     }
     i++;
 
@@ -134,16 +155,7 @@ void BrewHW::cleanupHW() {
     gpioTerminate();
 }
 
-// Private methods to sample individual sensors
-std::string BrewHW::sampleSensor1() {
-    std::cout << "Sampling sensor 1..." << std::endl;
-    return "Sensor1_Data";
-}
 
-std::string BrewHW::sampleSensor2() {
-    std::cout << "Sampling sensor 2..." << std::endl;
-    return "Sensor2_Data";
-}
 
 // Static method for input callback
 void BrewHW::inputCallback(int gpio, int level, uint32_t tick) {
@@ -220,28 +232,34 @@ void BrewHW::closeValve(void) {
 }
 
 
-int thermocoupleRead()
+float BrewHW::getTemperature()
 {
-return 0;
+return tempSensor.readCelsius();
 }
-float getPressure()
+float BrewHW::getPressure()
 {
-    return 0;
+  int16_t val_0 = adc.readADC(0);  
+  int16_t val_1 = adc.readADC(1);  
+  int16_t val_2 = adc.readADC(2);  
+  int16_t val_3 = adc.readADC(3);  
+
+  float f = adc.toVoltage(1);  // voltage factor
+  return f;
 }
 
-void BrewHW::sensorReadSwitches(void) {
-  currentState.brewSwitchState = brewState();
-  currentState.steamSwitchState = steamState();
-  currentState.hotWaterSwitchState = waterPinState() || (currentState.brewSwitchState && currentState.steamSwitchState); // use either an actual switch, or the GC/GCP switch combo
-}
+// void BrewHW::sensorReadSwitches(void) {
+//   currentState.brewSwitchState = brewState();
+//   currentState.steamSwitchState = steamState();
+//   currentState.hotWaterSwitchState = waterPinState() || (currentState.brewSwitchState && currentState.steamSwitchState); // use either an actual switch, or the GC/GCP switch combo
+// }
 
-void BrewHW::sensorsReadTemperature(void) {
-  if (millis() > thermoTimer) {
-    //currentState.temperature = thermocoupleRead() - runningCfg.offsetTemp;
-    thermoTimer = millis() + GET_KTYPE_READ_EVERY;
-  }
-}
-bool brewActive=true;
+// void BrewHW::sensorsReadTemperature(void) {
+//   if (millis() > thermoTimer) {
+//     //currentState.temperature = thermocoupleRead() - runningCfg.offsetTemp;
+//     thermoTimer = millis() + GET_KTYPE_READ_EVERY;
+//   }
+// }
+// bool brewActive=true;
 // void BrewHW::sensorsReadWeight(void) {
 //   uint32_t elapsedTime = millis() - scalesTimer;
 
@@ -267,42 +285,42 @@ bool brewActive=true;
 //     }
 //     scalesTimer = millis();
 //   }
+// // }
+
+// void BrewHW::sensorsReadPressure(void) {
+//   uint32_t elapsedTime = millis() - pressureTimer;
+
+//   if (elapsedTime > GET_PRESSURE_READ_EVERY) {
+//     float elapsedTimeSec = elapsedTime / 1000.f;
+//     currentState.pressure = getPressure();
+//     previousSmoothedPressure = currentState.smoothedPressure;
+//     currentState.smoothedPressure = smoothPressure.updateEstimate(currentState.pressure);
+//     currentState.pressureChangeSpeed = (currentState.smoothedPressure - previousSmoothedPressure) / elapsedTimeSec;
+//     pressureTimer = millis();
+//   }
 // }
 
-void BrewHW::sensorsReadPressure(void) {
-  uint32_t elapsedTime = millis() - pressureTimer;
+// int getAndResetClickCounter()
+// {
 
-  if (elapsedTime > GET_PRESSURE_READ_EVERY) {
-    float elapsedTimeSec = elapsedTime / 1000.f;
-    currentState.pressure = getPressure();
-    previousSmoothedPressure = currentState.smoothedPressure;
-    currentState.smoothedPressure = smoothPressure.updateEstimate(currentState.pressure);
-    currentState.pressureChangeSpeed = (currentState.smoothedPressure - previousSmoothedPressure) / elapsedTimeSec;
-    pressureTimer = millis();
-  }
-}
+// }
+// int getPumpFlow(int clicks, int pressure)
+// {
 
-int getAndResetClickCounter()
-{
+// }
 
-}
-int getPumpFlow(int clicks, int pressure)
-{
+// int BrewHW::sensorsReadFlow(float elapsedTimeSec) {
+//   long pumpClicks = getAndResetClickCounter();
+//   currentState.pumpClicks = (float) pumpClicks / elapsedTimeSec;
 
-}
+//   currentState.pumpFlow = getPumpFlow(currentState.pumpClicks, currentState.smoothedPressure);
 
-int BrewHW::sensorsReadFlow(float elapsedTimeSec) {
-  long pumpClicks = getAndResetClickCounter();
-  currentState.pumpClicks = (float) pumpClicks / elapsedTimeSec;
-
-  currentState.pumpFlow = getPumpFlow(currentState.pumpClicks, currentState.smoothedPressure);
-
-  previousSmoothedPumpFlow = currentState.smoothedPumpFlow;
-  // Some flow smoothing
-  currentState.smoothedPumpFlow = smoothPumpFlow.updateEstimate(currentState.pumpFlow);
-  currentState.pumpFlowChangeSpeed = (currentState.smoothedPumpFlow - previousSmoothedPumpFlow) / elapsedTimeSec;
-  return pumpClicks;
-}
+//   previousSmoothedPumpFlow = currentState.smoothedPumpFlow;
+//   // Some flow smoothing
+//   currentState.smoothedPumpFlow = smoothPumpFlow.updateEstimate(currentState.pumpFlow);
+//   currentState.pumpFlowChangeSpeed = (currentState.smoothedPumpFlow - previousSmoothedPumpFlow) / elapsedTimeSec;
+//   return pumpClicks;
+// }
 
 // void BrewHW::calculateWeightAndFlow(void) {
 //   uint32_t elapsedTime = millis() - flowTimer;
