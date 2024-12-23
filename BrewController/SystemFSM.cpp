@@ -10,6 +10,11 @@
 #include <iomanip>
 #include <mutex>
 #include <random>
+#include <deque>
+#include "BrewController.h"
+#include "SensorStructs.h"
+#include "SimpleKalmanFilter.h"
+#include "measurements.h"
 #include "SensorStructs.h"
 #include "BrewHW.h"
 #include "BrewFSM.h"
@@ -17,7 +22,7 @@
 #include "Profile.h"
 #include "SystemFSM.h"
 
-extern BrewConfig runningCfg;
+//extern BrewConfig runningCfg;
 
 SystemFSM::SystemFSM() : hw(BrewHW::getInstance()), brewFSM(*(new BrewFSM())) ,currentState(SystemState::Initialize) 
 {
@@ -42,7 +47,7 @@ void SystemFSM::handleBrewSetup() {
     std::string input;
     std::cin >> input;
     if (input == "start") {
-        runningCfg=getEepromDefaults();
+        //runningCfg=getEepromDefaults();
         currentState = SystemState::Brew;
     } else {
         std::cout << "Invalid input. Try again." << std::endl;

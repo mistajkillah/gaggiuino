@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-I2cBus I2cBus::s_empty("Empty");
+//I2cBus I2cBus::s_empty("Empty");
 
 
 I2cBus::I2cBus(const char* name) :

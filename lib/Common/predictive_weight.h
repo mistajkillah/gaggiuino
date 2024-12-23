@@ -2,9 +2,9 @@
 #ifndef PREDICTIVE_WEIGHT_H
 #define PREDICTIVE_WEIGHT_H
 
-#include "profiling_phases.h"
-#include "sensors_state.h"
-#include "../eeprom_data/eeprom_data.h"
+
+
+
 
 extern int preInfusionFinishedPhaseIdx;
 constexpr float crossSectionalArea = 0.0026f; // avg puck crossectional area.

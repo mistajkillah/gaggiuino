@@ -3,7 +3,7 @@
 // Copyright (C) 2018 by Jack Christensen and licensed under
 // GNU GPL v3.0, https://www.gnu.org/licenses/gpl.html
 
-#include <movingAvg.h>
+#include "movingAvg.h"
 
 // initialize - allocate the interval array
 void movingAvg::begin()

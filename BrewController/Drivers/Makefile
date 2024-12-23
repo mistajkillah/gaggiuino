@@ -1,5 +1,5 @@
 # Define the C++ compiler (Clang)
-CXX = clang++
+CXX = g++
 
 # Compiler flags for C++
 CXXFLAGS = -Wall -O0 -ggdb3 -fPIC

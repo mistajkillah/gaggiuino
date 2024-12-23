@@ -14,8 +14,12 @@
 #include <iomanip>
 #include <mutex>
 #include <random>
+#include <deque>
 #include "BrewController.h"
 #include "SensorStructs.h"
+#include "SimpleKalmanFilter.h"
+#include "measurements.h"
+
 #include "BrewFSM.h"
 #include "BrewHW.h"
 #include "BrewDB.h"

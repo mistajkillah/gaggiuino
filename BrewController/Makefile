@@ -2,14 +2,14 @@
 
 # Compiler and linker configurations
 CXX = g++
-CXXFLAGS = -I./Drivers -Wall -ggdb3 -O0
-LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread
+CXXFLAGS = -I./Drivers -Wall -ggdb3 -O0 -I/usr/include/jsoncpp
+LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread -ljsoncpp
 
 # Target binary
 TARGET = brewController
 
 # Source files
-SRC = main.cpp BrewHW.cpp BrewFSM.cpp SystemFSM.cpp BrewDB.cpp Profile.cpp measurements.cpp SimpleKalmanFilter.cpp movingAvg.cpp
+SRC = main.cpp BrewHW.cpp BrewFSM.cpp SystemFSM.cpp BrewDB.cpp Profile.cpp measurements.cpp SimpleKalmanFilter.cpp movingAvg.cpp Rpc.cpp
 OBJ = $(SRC:.cpp=.o)
 
 # Default target

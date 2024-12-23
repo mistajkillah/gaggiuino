@@ -109,4 +109,3 @@ static BrewConfig runningCfg;
 
   //bool loadCurrentEepromData EEPROM_METADATA_LOADER(EEPROM_DATA_VERSION, eepromMetadata_t, copy_t);
 
-}
