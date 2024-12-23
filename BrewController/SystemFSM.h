@@ -22,6 +22,7 @@ private:
     void handleBrew();
     void handleControlLoop();
 
+    
 public:
     SystemFSM();
     void run();

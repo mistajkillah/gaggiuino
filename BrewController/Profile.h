@@ -5,7 +5,7 @@
 #define PROFILE_NAME_LENGTH 25
 
   typedef struct {
-    char     name[24];
+   char     name[PROFILE_NAME_LENGTH];
     bool     preinfusionState;
     bool     preinfusionFlowState;
     uint16_t preinfusionSec;
@@ -26,6 +26,19 @@
     float    soakAbovePressure;
     float    soakAboveWeight;
     uint16_t preinfusionRamp;
+    uint16_t preinfusionRampSlope;
+    bool     tpState;
+    bool     tpType;
+    float    tpProfilingStart;
+    float    tpProfilingFinish;
+    uint16_t tpProfilingHold;
+    float    tpProfilingHoldLimit;
+    uint16_t tpProfilingSlope;
+    uint16_t tpProfilingSlopeShape;
+    float    tpProfilingFlowRestriction;
+    float    tfProfileStart;
+    float    tfProfileEnd;
+    uint16_t tfProfileHold;
     float    tfProfileHoldLimit;
     uint16_t tfProfileSlope;
     uint16_t tfProfileSlopeShape;
@@ -85,3 +98,5 @@ struct BrewConfig {
     {"Blooming espresso",/*pi*/true, true, 0, 0.f, 4.f, 20, 7.f, 0.f, 650, true, 0.f,/*sk*/true, 0, 30, 0.f, 0.f, 0.6f, 0.f, 5.f, 5, 2,/*tp*/true, true, 0.f, 0.f, 0, 0.f, 0, 0, 0.f, 2.f, 2.f, 1, 9.f, 0, 4, 9.f,/*pf*/true, true, 0.f, 0.f, 0, 0, 0.f, 2.f, 2.f, 15, 0, 6.f,/*other*/ 93, true, 18.f, 0.f, 2}  // profile 4
   };
 
+
+  BrewConfig getEepromDefaults(void) ;

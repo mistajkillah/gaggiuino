@@ -17,16 +17,22 @@
 #include <iomanip>
 #include <mutex>
 #include <random>
+#include <cstdint>
+#include <deque>
 
 #include <pigpio.h>
 #include "Arduino.h"
+#include "SimpleKalmanFilter.h"
+#include "measurements.h"
+#include "predictive_weight.h"
+#include "Profile.h"
 #include "BrewController.h"
 #include "SensorStructs.h"
 #include "BrewDB.h"
 #include "BrewHW.h"
 
 
-
+extern  BrewConfig runningCfg;
 
 // Static method to access the singleton instance
 BrewHW& BrewHW::getInstance() {
@@ -35,8 +41,16 @@ BrewHW& BrewHW::getInstance() {
 }
 
 // Private constructor
-BrewHW::BrewHW() {
-    // Initialization code, if necessary
+BrewHW::BrewHW() : 
+weightMeasurements(4), 
+smoothPressure (*new SimpleKalmanFilter(0.6f, 0.6f, 0.1f)), 
+smoothPumpFlow (*new SimpleKalmanFilter(0.1f, 0.1f, 0.01f)),
+smoothScalesFlow (*new SimpleKalmanFilter(0.5f, 0.5f, 0.01f)),
+smoothConsideredFlow (*new SimpleKalmanFilter(0.1f, 0.1f, 0.1f))  
+{
+
+    
+    
 }
 
 // Destructor
@@ -206,6 +220,14 @@ void BrewHW::closeValve(void) {
 }
 
 
+int thermocoupleRead()
+{
+return 0;
+}
+float getPressure()
+{
+    return 0;
+}
 
 void BrewHW::sensorReadSwitches(void) {
   currentState.brewSwitchState = brewState();
@@ -219,8 +241,8 @@ void BrewHW::sensorsReadTemperature(void) {
     thermoTimer = millis() + GET_KTYPE_READ_EVERY;
   }
 }
-
-// static void sensorsReadWeight(void) {
+bool brewActive=true;
+// void BrewHW::sensorsReadWeight(void) {
 //   uint32_t elapsedTime = millis() - scalesTimer;
 
 //   if (elapsedTime > GET_SCALES_READ_EVERY) {
@@ -247,68 +269,77 @@ void BrewHW::sensorsReadTemperature(void) {
 //   }
 // }
 
-// static void sensorsReadPressure(void) {
-//   uint32_t elapsedTime = millis() - pressureTimer;
+void BrewHW::sensorsReadPressure(void) {
+  uint32_t elapsedTime = millis() - pressureTimer;
 
-//   if (elapsedTime > GET_PRESSURE_READ_EVERY) {
-//     float elapsedTimeSec = elapsedTime / 1000.f;
-//     currentState.pressure = getPressure();
-//     previousSmoothedPressure = currentState.smoothedPressure;
-//     currentState.smoothedPressure = smoothPressure.updateEstimate(currentState.pressure);
-//     currentState.pressureChangeSpeed = (currentState.smoothedPressure - previousSmoothedPressure) / elapsedTimeSec;
-//     pressureTimer = millis();
-//   }
-// }
+  if (elapsedTime > GET_PRESSURE_READ_EVERY) {
+    float elapsedTimeSec = elapsedTime / 1000.f;
+    currentState.pressure = getPressure();
+    previousSmoothedPressure = currentState.smoothedPressure;
+    currentState.smoothedPressure = smoothPressure.updateEstimate(currentState.pressure);
+    currentState.pressureChangeSpeed = (currentState.smoothedPressure - previousSmoothedPressure) / elapsedTimeSec;
+    pressureTimer = millis();
+  }
+}
 
-// static long sensorsReadFlow(float elapsedTimeSec) {
-//   long pumpClicks = getAndResetClickCounter();
-//   currentState.pumpClicks = (float) pumpClicks / elapsedTimeSec;
+int getAndResetClickCounter()
+{
 
-//   currentState.pumpFlow = getPumpFlow(currentState.pumpClicks, currentState.smoothedPressure);
+}
+int getPumpFlow(int clicks, int pressure)
+{
 
-//   previousSmoothedPumpFlow = currentState.smoothedPumpFlow;
-//   // Some flow smoothing
-//   currentState.smoothedPumpFlow = smoothPumpFlow.updateEstimate(currentState.pumpFlow);
-//   currentState.pumpFlowChangeSpeed = (currentState.smoothedPumpFlow - previousSmoothedPumpFlow) / elapsedTimeSec;
-//   return pumpClicks;
-// }
+}
 
-// static void calculateWeightAndFlow(void) {
-//   uint32_t elapsedTime = millis() - flowTimer;
+int BrewHW::sensorsReadFlow(float elapsedTimeSec) {
+  long pumpClicks = getAndResetClickCounter();
+  currentState.pumpClicks = (float) pumpClicks / elapsedTimeSec;
 
-//   if (brewActive) {
-//     // Marking for tare in case smth has gone wrong and it has exited tare already.
-//     if (currentState.weight < -.3f) currentState.tarePending = true;
+  currentState.pumpFlow = getPumpFlow(currentState.pumpClicks, currentState.smoothedPressure);
 
-//     if (elapsedTime > REFRESH_FLOW_EVERY) {
-//       flowTimer = millis();
-//       float elapsedTimeSec = elapsedTime / 1000.f;
-//       long pumpClicks = sensorsReadFlow(elapsedTimeSec);
-//       float consideredFlow = currentState.smoothedPumpFlow * elapsedTimeSec;
-//       // Update predictive class with our current phase
-//       CurrentPhase& phase = phaseProfiler.getCurrentPhase();
-//       predictiveWeight.update(currentState, phase, runningCfg);
+  previousSmoothedPumpFlow = currentState.smoothedPumpFlow;
+  // Some flow smoothing
+  currentState.smoothedPumpFlow = smoothPumpFlow.updateEstimate(currentState.pumpFlow);
+  currentState.pumpFlowChangeSpeed = (currentState.smoothedPumpFlow - previousSmoothedPumpFlow) / elapsedTimeSec;
+  return pumpClicks;
+}
 
-//       // Start the predictive weight calculations when conditions are true
-//       if (predictiveWeight.isOutputFlow() || currentState.weight > 0.4f) {
-//         float flowPerClick = getPumpFlowPerClick(currentState.smoothedPressure);
-//         float actualFlow = (consideredFlow > pumpClicks * flowPerClick) ? consideredFlow : pumpClicks * flowPerClick;
-//         /* Probabilistically the flow is lower if the shot is just started winding up and we're flow profiling,
-//         once pressure stabilises around the setpoint the flow is either stable or puck restriction is high af. */
-//         if ((ACTIVE_PROFILE(runningCfg).mfProfileState || ACTIVE_PROFILE(runningCfg).tpType) && currentState.pressureChangeSpeed > 0.15f) {
-//           if ((currentState.smoothedPressure < ACTIVE_PROFILE(runningCfg).mfProfileStart * 0.9f)
-//           || (currentState.smoothedPressure < ACTIVE_PROFILE(runningCfg).tfProfileStart * 0.9f)) {
-//             actualFlow *= 0.3f;
-//           }
-//         }
-//         currentState.consideredFlow = smoothConsideredFlow.updateEstimate(actualFlow);
-//         currentState.shotWeight = currentState.scalesPresent ? currentState.shotWeight : currentState.shotWeight + actualFlow;
-//       }
-//       currentState.waterPumped += consideredFlow;
-//     }
-//   } else {
-//     currentState.consideredFlow = 0.f;
-//     currentState.pumpClicks = getAndResetClickCounter();
-//     flowTimer = millis();
-//   }
-// }
+void BrewHW::calculateWeightAndFlow(void) {
+  uint32_t elapsedTime = millis() - flowTimer;
+
+  if (brewActive) {
+    // Marking for tare in case smth has gone wrong and it has exited tare already.
+    if (currentState.weight < -.3f) currentState.tarePending = true;
+
+    if (elapsedTime > REFRESH_FLOW_EVERY) {
+      flowTimer = millis();
+      float elapsedTimeSec = elapsedTime / 1000.f;
+      long pumpClicks = sensorsReadFlow(elapsedTimeSec);
+      float consideredFlow = currentState.smoothedPumpFlow * elapsedTimeSec;
+      // Update predictive class with our current phase
+      CurrentPhase& phase = phaseProfiler.getCurrentPhase();
+      predictiveWeight.update(currentState, phase, runningCfg);
+
+      // Start the predictive weight calculations when conditions are true
+      if (predictiveWeight.isOutputFlow() || currentState.weight > 0.4f) {
+        float flowPerClick = getPumpFlowPerClick(currentState.smoothedPressure);
+        float actualFlow = (consideredFlow > pumpClicks * flowPerClick) ? consideredFlow : pumpClicks * flowPerClick;
+        /* Probabilistically the flow is lower if the shot is just started winding up and we're flow profiling,
+        once pressure stabilises around the setpoint the flow is either stable or puck restriction is high af. */
+        if ((ACTIVE_PROFILE(runningCfg).mfProfileState || ACTIVE_PROFILE(runningCfg).tpType) && currentState.pressureChangeSpeed > 0.15f) {
+          if ((currentState.smoothedPressure < ACTIVE_PROFILE(runningCfg).mfProfileStart * 0.9f)
+          || (currentState.smoothedPressure < ACTIVE_PROFILE(runningCfg).tfProfileStart * 0.9f)) {
+            actualFlow *= 0.3f;
+          }
+        }
+        currentState.consideredFlow = smoothConsideredFlow.updateEstimate(actualFlow);
+        currentState.shotWeight = currentState.scalesPresent ? currentState.shotWeight : currentState.shotWeight + actualFlow;
+      }
+      currentState.waterPumped += consideredFlow;
+    }
+  } else {
+    currentState.consideredFlow = 0.f;
+    currentState.pumpClicks = getAndResetClickCounter();
+    flowTimer = millis();
+  }
+}

@@ -9,7 +9,7 @@ LDFLAGS = -L./Drivers -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread
 TARGET = brewController
 
 # Source files
-SRC = main.cpp BrewHW.cpp BrewFSM.cpp SystemFSM.cpp BrewDB.cpp
+SRC = main.cpp BrewHW.cpp BrewFSM.cpp SystemFSM.cpp BrewDB.cpp Profile.cpp measurements.cpp SimpleKalmanFilter.cpp movingAvg.cpp
 OBJ = $(SRC:.cpp=.o)
 
 # Default target

@@ -1,7 +1,7 @@
 #pragma once
 
 
-
+class Measurments;
 class BrewHW {
 public:
     // Deleted copy constructor and assignment operator to prevent copying
@@ -49,14 +49,31 @@ private:
     void sensorReadSwitches(void);
     void sensorsReadTemperature(void);
 
-        //Timers
-    unsigned long systemHealthTimer;
-    unsigned long pageRefreshTimer;
-    unsigned long pressureTimer;
-    unsigned long brewingTimer;
-    unsigned long thermoTimer;
-    unsigned long scalesTimer;
-    unsigned long flowTimer;
-    unsigned long steamTime;
+    void sensorsReadPressure(void);
 
+    int sensorsReadFlow(float elapsedTimeSec);
+
+    void calculateWeightAndFlow(void);
+
+    void sensorsReadWeight(void);
+    //scales vars
+    Measurements weightMeasurements;
+    // Timers
+    unsigned long systemHealthTimer=0;
+    unsigned long pageRefreshTimer=0;
+    unsigned long pressureTimer=0;
+    unsigned long brewingTime=0;
+    unsigned long thermoTimer=0;
+    unsigned long scalesTimer=0;
+    unsigned long flowTimer=0;
+    unsigned long steamTim0;
+
+    // Other util vars
+    float previousSmoothedPressure;
+    float previousSmoothedPumpFlow;
+
+    SimpleKalmanFilter &smoothPressure;
+    SimpleKalmanFilter &smoothPumpFlow;
+    SimpleKalmanFilter &smoothScalesFlow;
+    SimpleKalmanFilter &smoothConsideredFlow;
 };
