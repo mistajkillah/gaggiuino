@@ -61,3 +61,6 @@
 #define BOILER_FILL_SKIP_TEMP   85.f // Boiler fill skip temperature threshold
 #define SYS_PRESSURE_IDLE       0.7f // System pressure threshold at idle
 #define MIN_WATER_LVL           10u // Min allowable tank water lvl
+
+
+

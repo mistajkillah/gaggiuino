@@ -125,13 +125,14 @@ SensorState BrewHW::getSensorState() {
     std::cout << "Sampling sensors..." << std::endl;
     static int i = 0;
     BrewDB &db = BrewDB::getInstance();
-    SensorState sensorState;
+    SensorState sensorState={};
     if(SIM)
     {
         return db.generateFakeSensorState(i);
     }
     else{
       memset(&sensorState,0, sizeof(sensorState));
+      sensorState.timestamp = std::chrono::system_clock::now();
       sensorState.steamSwitchState=steamState();
       sensorState.brewSwitchState=brewState();
       sensorState.pressure=getPressure();

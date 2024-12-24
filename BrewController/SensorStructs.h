@@ -1,34 +1,50 @@
 
 #pragma once
 #include <string>
+#include <iostream>
+#include <iomanip> // Required for std::put_time
+#include <chrono>
+#include <sstream>
+
+static inline std::string timePointToString(const std::chrono::system_clock::time_point& timestamp) {
+    std::ostringstream ss;
+    auto time_t_timestamp = std::chrono::system_clock::to_time_t(timestamp);
+    auto tm_timestamp = *std::localtime(&time_t_timestamp);
+    ss << std::put_time(&tm_timestamp, "%m%d%Y:%H:%M:%S")
+       << ":" << std::setw(3) << std::setfill('0') << (std::chrono::duration_cast<std::chrono::milliseconds>(timestamp.time_since_epoch()) % 1000).count()
+       << ":" << std::setw(6) << std::setfill('0') << (std::chrono::duration_cast<std::chrono::nanoseconds>(timestamp.time_since_epoch()) % 1000000000).count();
+    return ss.str();
+}
+
 struct SensorState {
-    uint32_t iteration;
-    char datestamp[30]; // MMDDYYYY:HH:MM:SS:MS:USEC
-    uint32_t timeSinceBrewStart; // msec
-    uint32_t timeSinceSystemStart; // msec
-    bool brewSwitchState;
-    bool steamSwitchState;
-    bool hotWaterSwitchState;
-    bool isSteamForgottenON;
-    bool scalesPresent;
-    bool tarePending;
-    float temperature; // °C
-    float waterTemperature; // °C
-    float pressure; // bar
-    float pressureChangeSpeed; // bar/s
-    float pumpFlow; // ml/s
-    float pumpFlowChangeSpeed; // ml/s^2
-    float waterPumped;
-    float weightFlow;
-    float weight;
-    float shotWeight;
-    float smoothedPressure;
-    float smoothedPumpFlow;
-    float smoothedWeightFlow;
-    float consideredFlow;
-    long pumpClicks;
-    uint16_t waterLvl;
-    bool tofReady;
+    uint32_t iteration = 0;
+    char datestamp[30] = {0};
+    std::chrono::system_clock::time_point timestamp; // Native timestamp    
+    uint32_t timeSinceBrewStart = 0;
+    uint32_t timeSinceSystemStart = 0;
+    bool brewSwitchState = false;
+    bool steamSwitchState = false;
+    bool hotWaterSwitchState = false;
+    bool isSteamForgottenON = false;
+    bool scalesPresent = false;
+    bool tarePending = false;
+    float temperature = 0.0f;
+    float waterTemperature = 0.0f;
+    float pressure = 0.0f;
+    float pressureChangeSpeed = 0.0f;
+    float pumpFlow = 0.0f;
+    float pumpFlowChangeSpeed = 0.0f;
+    float waterPumped = 0.0f;
+    float weightFlow = 0.0f;
+    float weight = 0.0f;
+    float shotWeight = 0.0f;
+    float smoothedPressure = 0.0f;
+    float smoothedPumpFlow = 0.0f;
+    float smoothedWeightFlow = 0.0f;
+    float consideredFlow = 0.0f;
+    long pumpClicks = 0;
+    uint16_t waterLvl = 0;
+    bool tofReady = false;
 
     std::string& toString()
 {
@@ -36,6 +52,7 @@ struct SensorState {
     std::ostringstream oss;
     oss << "Iteration: " << iteration << "\n";
     oss << "Datestamp: " << datestamp << "\n";
+    oss << "Timestamp: " << timePointToString(timestamp) << "\n";
     oss << "Time Since Brew Start: " << timeSinceBrewStart << " ms\n";
     oss << "Time Since System Start: " << timeSinceSystemStart << " ms\n";
     oss << "Brew Switch State: " << brewSwitchState << "\n";
