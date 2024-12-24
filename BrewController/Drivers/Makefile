@@ -1,5 +1,14 @@
-# Define the C++ compiler (Clang)
-CXX = g++
+# Default target platform
+TARGET ?= native
+
+# Toolchain and compiler selection
+ifeq ($(TARGET),rpi)
+    CXX = arm-linux-gnueabihf-g++
+    CC = arm-linux-gnueabihf-gcc
+else
+    CXX = g++
+    CC = gcc
+endif
 
 # Compiler flags for C++
 CXXFLAGS = -Wall -O0 -ggdb3 -fPIC
@@ -33,11 +42,11 @@ LIB = libGenericDrivers.a
 $(LIB): $(CXX_OBJS)
 	ar rcs $@ $^
 
-# Phony targets
-.PHONY: all clean
-
 # Default target
 all: $(LIB)
+
+# Phony targets
+.PHONY: all clean
 
 # Clean target
 clean:

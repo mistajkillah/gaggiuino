@@ -1,63 +1,52 @@
 # Main Makefile for gpio_control
 
-# Default target (native build)
+# Build target: native or rpi (default is native)
 TARGET ?= native
 
-# Compiler and linker configurations for native build
-CXX_NATIVE = g++
-CXXFLAGS_NATIVE = -I./Drivers -Wall -ggdb3 -O0 -I/usr/include/jsoncpp
-LDFLAGS_NATIVE = -L./Drivers -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread -ljsoncpp
-
-# Compiler and linker configurations for Raspberry Pi Zero 2 cross-compilation
-CXX_RPI = arm-linux-gnueabihf-g++
-CXXFLAGS_RPI = -I./Drivers -Wall -O2 -I/usr/include/jsoncpp
-LDFLAGS_RPI = -L./Drivers -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread -ljsoncpp
-
-# Compiler and linker configurations based on target
+# Toolchain and compiler selection
 ifeq ($(TARGET),rpi)
-    CXX = $(CXX_RPI)
-    CXXFLAGS = $(CXXFLAGS_RPI)
-    LDFLAGS = $(LDFLAGS_RPI)
+    CXX = arm-linux-gnueabihf-g++
+    CC = arm-linux-gnueabihf-gcc
 else
-    CXX = $(CXX_NATIVE)
-    CXXFLAGS = $(CXXFLAGS_NATIVE)
-    LDFLAGS = $(LDFLAGS_NATIVE)
+    CXX = g++
+    CC = gcc
 endif
 
-# Output binary name
-BINARY = brewController
+# Compiler and linker configurations
+CXXFLAGS = -I./Drivers -I./Drivers/pigpio/include -Wall -ggdb3 -O0 -I/usr/include/jsoncpp
+LDFLAGS = -L./Drivers -L./Drivers/pigpio/lib -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread -ljsoncpp
+
+# Output binary
+OUTPUT = brewController
 
 # Source files
 SRC = main.cpp BrewHW.cpp BrewDB.cpp Profile.cpp measurements.cpp SimpleKalmanFilter.cpp movingAvg.cpp Rpc.cpp
 OBJ = $(SRC:.cpp=.o)
 
 # Default target
-all: drivers $(BINARY)
+all: drivers $(OUTPUT)
 
-# Rule for making the actual binary
-$(BINARY): $(OBJ)
+# Rule for building the target binary
+$(OUTPUT): $(OBJ)
 	$(CXX) $(OBJ) -o $@ $(LDFLAGS)
 
-# Rule for compiling object files
+# Rule for building object files
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Phony targets for clean and driver library build
-.PHONY: clean drivers native rpi
-
-# Rule to make the drivers library
+# Rule for building Drivers library
 drivers:
 	$(MAKE) -C Drivers TARGET=$(TARGET)
 
-# Clean rule
-clean:
-	$(RM) $(OBJ) $(BINARY)
-	$(MAKE) -C Drivers clean
-
-# Target for native build
+# Native build target
 native:
 	$(MAKE) TARGET=native
 
-# Target for Raspberry Pi build
+# RPi build target
 rpi:
 	$(MAKE) TARGET=rpi
+
+# Clean rule
+clean:
+	rm -f $(OBJ) $(OUTPUT)
+	$(MAKE) -C Drivers clean
