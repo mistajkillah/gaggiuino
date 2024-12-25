@@ -59,7 +59,7 @@ BrewHW::BrewHW() :
 // smoothConsideredFlow (*new SimpleKalmanFilter(0.1f, 0.1f, 0.1f),
 spiDevice(0,0,4000000,8,1000,0,"SpiDevice0.0"),
 tempSensor(&spiDevice,"BoilerTemp"),
-i2c(0,"i2c0"),
+i2c(1,"i2c1"),
 adc(&i2c,"WaterTemp",0x48)
 {
 
@@ -131,7 +131,9 @@ SensorState BrewHW::getSensorState() {
         return db.generateFakeSensorState(i);
     }
     else{
-      memset(&sensorState,0, sizeof(sensorState));
+      
+      //memset(&sensorState,0, sizeof(sensorState));
+      sensorState.iteration=i;
       sensorState.timestamp = std::chrono::system_clock::now();
       sensorState.steamSwitchState=steamState();
       sensorState.brewSwitchState=brewState();
@@ -239,13 +241,13 @@ return tempSensor.readCelsius();
 }
 float BrewHW::getPressure()
 {
-  int16_t val_0 = adc.readADC(0);  
-  int16_t val_1 = adc.readADC(1);  
-  int16_t val_2 = adc.readADC(2);  
-  int16_t val_3 = adc.readADC(3);  
+  // int16_t val_0 = adc.readADC(0);  
+  // int16_t val_1 = adc.readADC(1);  
+  // int16_t val_2 = adc.readADC(2);  
+  // int16_t val_3 = adc.readADC(3);  
 
-  float f = adc.toVoltage(1);  // voltage factor
-  return f;
+  //float f = adc.toVoltage(1);  // voltage factor
+  return 0;//f;
 }
 
 // void BrewHW::sensorReadSwitches(void) {
