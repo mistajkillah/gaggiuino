@@ -83,15 +83,17 @@ int BrewHW::initializeHW() {
     }
 
     // Set GPIO modes
-    gpioSetMode(inputPin, PI_INPUT);
-    gpioSetMode(outputPin, PI_OUTPUT);
-    gpioSetMode(togglePin, PI_OUTPUT);
-
+    //gpioSetMode(zc_Pin, PI_INPUT);
+    gpioSetMode(pumpCTRL_PIN, PI_OUTPUT);
+    gpioSetMode(brewSENSE_PIN, PI_INPUT);
+    gpioSetMode(steamSENSE_PIN, PI_INPUT);
+    gpioSetPullUpDown(steamSENSE_PIN, PI_PUD_UP);
+    gpioSetPullUpDown(steamSENSE_PIN, PI_PUD_UP);
     // Set pull-down resistor on the input pin
-    gpioSetPullUpDown(inputPin, PI_PUD_DOWN);
+    //gpioSetPullUpDown(zc_Pin, PI_PUD_DOWN);
 
     // Set the callback function for the input pin
-    gpioSetAlertFunc(inputPin, inputCallback);
+    //gpioSetAlertFunc(zc_Pin, inputCallback);
 
 
   adc.begin();
@@ -163,7 +165,7 @@ void BrewHW::cleanupHW() {
 // Static method for input callback
 void BrewHW::inputCallback(int gpio, int level, uint32_t tick) {
     // Set the output pin based on the input pin level
-    gpioWrite(outputPin, level);
+    //gpioWrite(pumpCTRL_PSM_Pin, level);
 }
 
 
