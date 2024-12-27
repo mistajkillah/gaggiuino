@@ -49,9 +49,9 @@ private:
   void handleComplete();
 
   // Helper for latency calculation
-  double calculateLatency(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
+  inline double calculateLatency(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
     const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart);
-  void executeSleep(Iteration& iter);
+  inline void executeSleep(Iteration& iter);
 
 public:
   SystemFSM();

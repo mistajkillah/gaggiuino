@@ -208,7 +208,7 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
     struct i2c_msg i2cMessages[2];
     struct i2c_rdwr_ioctl_data i2cIoctlData;
 
-    LOG_DEBUG(
+    LOG_I2C(
                "busId = %d, devAddr = 0x%02x, commandByteCount = %u, dataByteCount = %u\n",
                _busId,
                devAddr,

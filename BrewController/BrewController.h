@@ -10,7 +10,37 @@
     }
 
 
+// Logging levels
+#define BLOG_LEVEL_ALL 0
+#define BLOG_LEVEL_DEBUG 3
+#define BLOG_LEVEL_INFO 4
+#define BLOG_LEVEL_ERROR 5
 
+// Set the active logging level here
+#ifndef BACTIVE_LOG_LEVEL
+#define BACTIVE_LOG_LEVEL BLOG_LEVEL_INFO
+#endif
+
+// Unified logging function
+#define BLOG(level, format, ...) \
+    do { \
+        if (level >= BACTIVE_LOG_LEVEL) { \
+            fprintf(stdout, format, ##__VA_ARGS__); \
+        } \
+    } while (0)
+
+// Convenience macros for specific log levels
+#define BLOG_ERROR(format, ...) BLOG(BLOG_LEVEL_ERROR, format, ##__VA_ARGS__)
+#define BLOG_DEBUG(format, ...) BLOG(BLOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
+#define BLOG_INFO(format, ...) BLOG(BLOG_LEVEL_INFO, format, ##__VA_ARGS__)
+
+// Status-based logging macro
+#define BLOG_STATUS(status, format, ...) \
+    do { \
+        if ((status) != 0) { \
+            fprintf(stdout, format, ##__VA_ARGS__); \
+        } \
+    } while (0)
 
 // STM32F4 pins definitions
 #define thermoDO      0 //PB4

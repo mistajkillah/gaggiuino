@@ -1,11 +1,8 @@
-
 #include <iostream>
 #include <string>
 #include <thread>
 #include <cstring>
 #include <sstream>
-#include <iostream>
-#include <cstring>
 #include <sqlite3.h>
 #include <string>
 #include <thread>
@@ -29,145 +26,117 @@
 SystemFSM::SystemFSM() : hw(BrewHW::getInstance()), currentState(SystemState::Initialize) {}
 
 void SystemFSM::handleInitialize() {
-  std::cout << "System is initializing..." << std::endl;
-  system("rm -rf /tmp/mydb.sqlite");
-  BrewDB& brewDB = BrewDB::getInstance();
-  brewDB.Initialize();
-  hw.initializeHW();
-  currentState = SystemState::BrewSetup;
+    BLOG_INFO("System is initializing...");
+    system("rm -rf /tmp/mydb.sqlite");
+    BrewDB& brewDB = BrewDB::getInstance();
+    brewDB.Initialize();
+    hw.initializeHW();
+    currentState = SystemState::BrewSetup;
 }
 
 void SystemFSM::handleBrewSetup() {
-  std::cout << "Enter brewing information (type 'start' to begin brewing): ";
-  std::string input;
-  std::cin >> input;
-  if (input == "start")
-  {
-    currentState = SystemState::Brewing;
-  }
-  else
-  {
-    std::cout << "Invalid input. Try again." << std::endl;
-  }
+    BLOG_ERROR("Enter brewing information (type 'start' to begin brewing): ");
+    std::string input;
+    std::cin >> input;
+    if (input == "start") {
+        currentState = SystemState::Brewing;
+    } else {
+        BLOG_ERROR("Invalid input. Try again.");
+    }
 }
 
-inline void SystemFSM::handleBrewing()
-{
-    std::cout << "Brewing in progress..." << std::endl;
+inline void SystemFSM::handleBrewing() {
+    static int brewFSMCount = 0;
+    BLOG_DEBUG("Brewing in progress...");
 
-    SensorState state=hw.getSensorState();
-    std::cout<<state.toString()<<std::endl;
+    SensorState state = hw.getSensorState();
+    BLOG_ERROR(state.toString().c_str());
 
-    std::cout << "Brewing complete. Transitioning to Complete state." << std::endl;
-    currentState = SystemState::Complete;
+    if (brewFSMCount > TOTAL_ITERATIONS) {
+        BLOG_ERROR("Brewing complete. Transitioning to Complete state.");
+        currentState = SystemState::Complete;
+    }
+    brewFSMCount++;
 }
+
 void SystemFSM::run() {
-  Iteration currentIteration;
-  Iteration previousIteration;
+    Iteration currentIteration = {};
+    Iteration previousIteration = {};
+    int currIndex = 0;
+    while (currentState != SystemState::Exit) {
+        std::memset(&currentIteration, 0, sizeof(Iteration));
+        currentIteration.index = currIndex;
+        currentIteration.start = std::chrono::high_resolution_clock::now();
 
-  for (int currIndex = 0; currIndex < TOTAL_ITERATIONS; ++currIndex)
-  {
-    std::cout << "In Loop index: " << currIndex << std::endl;
-    std::memset(&currentIteration, 0, sizeof(Iteration));
-    currentIteration.index = currIndex;
-    currentIteration.start = std::chrono::high_resolution_clock::now();
+        BLOG_ERROR("Previous iteration latency: %f ms", previousIteration.latency);
 
-    // Print the latency of the previous iteration
-    if (currIndex > 0)
-    {
-      std::cout << "Previous iteration latency: " << previousIteration.latency << " ms" << std::endl;
+        if (false == step()) {
+            break;
+        }
+
+        currentIteration.latency = calculateLatency(currentIteration.start, previousIteration.start);
+        currentIteration.end = std::chrono::high_resolution_clock::now();
+        currentIteration.elapsed = currentIteration.end - currentIteration.start;
+        executeSleep(currentIteration);
+
+        previousIteration = currentIteration;
     }
-
-    
-    if(false==step())
-    {
-      break;
-    }
-
-
-    if (currIndex != 0)
-    {
-      currentIteration.latency = calculateLatency(currentIteration.start, previousIteration.start);
-    }
-    else
-    {
-      currentIteration.latency = 0;
-    }
-
-    currentIteration.end = std::chrono::high_resolution_clock::now();
-    currentIteration.elapsed = currentIteration.end - currentIteration.start;
-    executeSleep(currentIteration);
-
-    // Update previousIteration for the next loop iteration
-    previousIteration = currentIteration;
-  }
 }
-
 
 void SystemFSM::handleComplete() {
-  std::cout << "Brewing process complete. Enjoy your beverage!" << std::endl;
-  std::cout << "Type 'exit' to stop or 'restart' to initialize again: ";
-  std::string input;
-  std::cin >> input;
-  if (input == "exit")
-  {
-    currentState = SystemState::Exit;
-  }
-  else if (input == "restart")
-  {
-    currentState = SystemState::Initialize;
-  }
-  else
-  {
-    std::cout << "Invalid input. Staying in Complete state." << std::endl;
-  }
-}
-
-void SystemFSM::executeSleep(Iteration& iter) {
-  constexpr long maxNsSleep = 10000000; // 10ms
-  double sleepTime = 0.0;
-  if (iter.elapsed.count() > maxNsSleep)
-  {
-    iter.exceeds_ten = true;
-    std::cerr << "Exceeded maximum sleep time" << std::endl;
-  }
-  else
-  {
-    sleepTime = maxNsSleep - iter.elapsed.count();
-    iter.sleeptime = sleepTime;
-    std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<long long>(sleepTime)));
-  }
-}
-inline bool SystemFSM::step() {
-  while (currentState != SystemState::Exit)
-  {
-    switch (currentState)
-    {
-    case SystemState::Initialize:
-      handleInitialize();
-      break;
-    case SystemState::BrewSetup:
-      handleBrewSetup();
-      break;
-    case SystemState::Brewing:
-      handleBrewing();
-      break;
-    case SystemState::Complete:
-      handleComplete();
-      break;
-    case SystemState::Exit:
-      std::cout << "Exiting system..." << std::endl;
-      break;
-    default:
-      std::cout << "Unknown state! Exiting for safety." << std::endl;
-      currentState = SystemState::Exit;
-      break;
+    BLOG_DEBUG("Brewing process complete. Enjoy your beverage!");
+    BLOG_ERROR("Type 'exit' to stop or 'restart' to initialize again: ");
+    std::string input;
+    std::cin >> input;
+    if (input == "exit") {
+        currentState = SystemState::Exit;
+    } else if (input == "restart") {
+        currentState = SystemState::Initialize;
+    } else {
+        BLOG_ERROR("Invalid input. Staying in Complete state.");
     }
-  }
 }
 
-double SystemFSM::calculateLatency(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
-  const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart) {
-  auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currStart - prevStart);
-  return duration.count() / 1e6; // Convert nanoseconds to milliseconds
+inline void SystemFSM::executeSleep(Iteration& iter) {
+    constexpr long maxNsSleep = 10000000; // 10ms
+    double sleepTime = 0.0;
+    if (iter.elapsed.count() > maxNsSleep) {
+        iter.exceeds_ten = true;
+        BLOG_ERROR("Exceeded maximum sleep time");
+    } else {
+        sleepTime = maxNsSleep - iter.elapsed.count();
+        iter.sleeptime = sleepTime;
+        std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<long long>(sleepTime)));
+    }
+}
+
+inline bool SystemFSM::step() {
+    switch (currentState) {
+        case SystemState::Initialize:
+            handleInitialize();
+            break;
+        case SystemState::BrewSetup:
+            handleBrewSetup();
+            break;
+        case SystemState::Brewing:
+            handleBrewing();
+            break;
+        case SystemState::Complete:
+            handleComplete();
+            break;
+        case SystemState::Exit:
+            BLOG_ERROR("Exiting system...");
+            return false;
+        default:
+            BLOG_ERROR("Unknown state! Exiting for safety.");
+            currentState = SystemState::Exit;
+            break;
+    }
+    return true;
+}
+
+double inline SystemFSM::calculateLatency(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
+    const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart) {
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currStart - prevStart);
+    return duration.count() / 1e6; // Convert nanoseconds to milliseconds
 }
