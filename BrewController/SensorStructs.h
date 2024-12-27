@@ -61,7 +61,7 @@ struct SensorState {
     //oss << "Is Steam Forgotten ON: " << isSteamForgottenON << "\n";
     //oss << "Scales Present: " << scalesPresent << "\n";
     //oss << "Tare Pending: " << tarePending << "\n";
-    //oss << "Temperature: " << temperature << " °C\n";
+    oss << "Temperature: " << temperature << " °C\n";
     //oss << "Water Temperature: " << waterTemperature << " °C\n";
     oss << "Pressure: " << pressure << " bar\n";
     //oss << "Pressure Change Speed: " << pressureChangeSpeed << " bar/s\n";

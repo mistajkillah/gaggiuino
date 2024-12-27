@@ -115,34 +115,35 @@ inline void SystemFSM::handleBrewing() {
     }
 }
 
-void SystemFSM::run() {
-    Iteration currentIteration = {};
-    Iteration previousIteration = {};
-    int currIndex = 0;
-    while (currentState != SystemState::Exit) {
-        std::memset(&currentIteration, 0, sizeof(Iteration));
-        currentIteration.index = currIndex;
-        currentIteration.start = std::chrono::high_resolution_clock::now();
 
-        BLOG_ERROR(
-            "Total Time: %f ms Execution Time: %f ms Sleep Time: %f ms\n",
-            previousIteration.totalTime_ms, 
-            std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(previousIteration.elapsed).count(),
-            std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
-                std::chrono::nanoseconds(static_cast<long long>(previousIteration.sleeptime_ns))).count());
+// void SystemFSM::run() {
+//     Iteration currentIteration = {};
+//     Iteration previousIteration = {};
+//     int currIndex = 0;
+//     while (currentState != SystemState::Exit) {
+//         std::memset(&currentIteration, 0, sizeof(Iteration));
+//         currentIteration.index = currIndex;
+//         currentIteration.start = std::chrono::high_resolution_clock::now();
 
-        if (false == step()) {
-            break;
-        }
+//         BLOG_ERROR(
+//             "Total Time: %f ms Execution Time: %f ms Sleep Time: %f ms\n",
+//             previousIteration.totalTime_ms, 
+//             std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(previousIteration.elapsed).count(),
+//             std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(
+//                 std::chrono::nanoseconds(static_cast<long long>(previousIteration.sleeptime_ns))).count());
 
-        currentIteration.totalTime_ms = calcualteTotalTime(currentIteration.start, previousIteration.start);
-        currentIteration.end = std::chrono::high_resolution_clock::now();
-        currentIteration.elapsed = currentIteration.end - currentIteration.start;
-        executeSleep(currentIteration);
+//         if (false == step()) {
+//             break;
+//         }
 
-        previousIteration = currentIteration;
-    }
-}
+//         currentIteration.totalTime_ms = calcualteTotalTime(currentIteration.start, previousIteration.start);
+//         currentIteration.end = std::chrono::high_resolution_clock::now();
+//         currentIteration.elapsed = currentIteration.end - currentIteration.start;
+//         executeSleep(currentIteration);
+
+//         previousIteration = currentIteration;
+//     }
+// }
 
 void SystemFSM::handleComplete() {
     BLOG_DEBUG("Brewing process complete. Enjoy your beverage!\n");
@@ -184,45 +185,126 @@ inline bool SystemFSM::step() {
     return true;
 }
 
-double inline SystemFSM::calcualteTotalTime(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
-    const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart) {
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currStart - prevStart);
-    return duration.count() / 1e6; // Convert nanoseconds to milliseconds
-}
+// double inline SystemFSM::calcualteTotalTime(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
+//     const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart) {
+//     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currStart - prevStart);
+//     return duration.count() / 1e6; // Convert nanoseconds to milliseconds
+// }
 
 
-// inline double SystemFSM::calculateLatency(
+// // inline double SystemFSM::calculateLatency(
 //     const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
 //     const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart) 
 // {
 //     return std::chrono::duration_cast<std::chrono::nanoseconds>(currStart - prevStart).count() / 1e6; // ms
 // }
-inline void SystemFSM::executeSleep(Iteration& iter) {
-    constexpr long maxNsSleep = 10000000; // 10ms in nanoseconds
-    constexpr long minNsSleep = 1000000; // 1ms in nanoseconds
-    double sleepTime = 0.0;
+// inline void SystemFSM::executeSleep(Iteration& iter) {
+//     constexpr long maxNsSleep = 10000000; // 10ms in nanoseconds
+//     constexpr long minNsSleep = 1000000; // 1ms in nanoseconds
+//     double sleepTime = 0.0;
 
-    if (iter.elapsed.count() > maxNsSleep) {
-        iter.exceeds_ten = true;
-        BLOG_ERROR("Exceeded maximum sleep time\n");
-    } else {
-        sleepTime = maxNsSleep - iter.elapsed.count();
-        iter.sleeptime_ns = sleepTime;
+//     if (iter.elapsed.count() > maxNsSleep) {
+//         iter.exceeds_ten = true;
+//         BLOG_ERROR("Exceeded maximum sleep time\n");
+//     } else {
+//         sleepTime = maxNsSleep - iter.elapsed.count();
+//         iter.sleeptime_ns = sleepTime;
 
-        if (sleepTime >= minNsSleep) {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<long long>(sleepTime)));
-        } else {
-            //BLOG_DEBUG("Skipping sleep as the calculated time is less than 1 ms\n");
+//         if (sleepTime >= minNsSleep) {
+//             std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<long long>(sleepTime)));
+//         } else {
+//             //BLOG_DEBUG("Skipping sleep as the calculated time is less than 1 ms\n");
+//         }
+//     }
+// }
+
+// inline void SystemFSM::executeSleep(const std::chrono::nanoseconds& elapsedTime) {
+//     constexpr long maxNsSleep = 10'000'000; // 10ms in nanoseconds
+//     long long sleepTime = maxNsSleep - elapsedTime.count();
+//     if (sleepTime > 0) {
+//         std::this_thread::sleep_for(std::chrono::nanoseconds(sleepTime));
+//     } else {
+//         BLOG_DEBUG("Exceeded maximum allowed sleep time.\n");
+//     }
+// }
+
+
+
+void SystemFSM::run() {
+    Iteration currentIteration = {};
+    Iteration previousIteration = {};
+    int currIndex = 0;
+
+    while (currentState != SystemState::Exit) {
+        std::memset(&currentIteration, 0, sizeof(Iteration));
+        currentIteration.index = currIndex;
+        currentIteration.start = std::chrono::high_resolution_clock::now();
+
+        // Log previous iteration timings
+        BLOG_ERROR(
+            "Total Time: %f ms Execution Time: %f ms Sleep Time: %f ms\n",
+            previousIteration.totalTime_ms,
+            std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(previousIteration.elapsed).count(),
+            previousIteration.sleeptime_ns / 1e6 // Convert nanoseconds to milliseconds
+        );
+
+        if (!step()) {
+            break;
         }
+
+        // Calculate total time for the current iteration
+        currentIteration.totalTime_ms = calculateTotalTime(currentIteration.start, previousIteration.start);
+
+        // Mark the end of the current iteration
+        currentIteration.end = std::chrono::high_resolution_clock::now();
+        currentIteration.elapsed = currentIteration.end - currentIteration.start;
+
+        // Execute sleep and update sleep time in the struct
+        currentIteration.sleeptime_ns = executeSleep(currentIteration.elapsed);
+        // if (currentIteration.sleeptime_ns == 0.0) {
+        //     currentIteration.exceeds_ten = true;
+        // }
+
+        // Update the previous iteration
+        previousIteration = currentIteration;
+        currIndex++;
     }
 }
 
-inline void SystemFSM::executeSleep(const std::chrono::nanoseconds& elapsedTime) {
+// inline double SystemFSM::calculateTotalTime(
+//     const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
+//     const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart
+// ) {
+//     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currStart - prevStart);
+//     return duration.count() / 1e6; // Convert nanoseconds to milliseconds
+// }
+
+inline double SystemFSM::calculateTotalTime(
+    const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
+    const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart
+) {
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(currStart - prevStart);
+    return duration.count(); // Already in milliseconds
+}
+
+
+inline double SystemFSM::executeSleep(const std::chrono::duration<double, std::nano>& elapsed) {
     constexpr long maxNsSleep = 10'000'000; // 10ms in nanoseconds
-    long long sleepTime = maxNsSleep - elapsedTime.count();
-    if (sleepTime > 0) {
-        std::this_thread::sleep_for(std::chrono::nanoseconds(sleepTime));
+    constexpr long minNsSleep = 1'000'000;  // 1ms in nanoseconds
+
+    // Calculate remaining sleep time
+    double sleepTime = maxNsSleep - elapsed.count();
+
+    if (sleepTime > 0 && sleepTime >= minNsSleep) {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<long long>(sleepTime)));
+        return sleepTime; // Return the calculated sleep time
+    } else if (sleepTime > 0) {
+        // Sleep time is too small, log the decision to skip sleep
+        //BLOG_DEBUG("Skipping sleep as the calculated time is less than 1 ms\n");
     } else {
-        BLOG_DEBUG("Exceeded maximum allowed sleep time.\n");
+        // Elapsed time exceeded the maximum allowed sleep time
+        BLOG_ERROR("Exceeded maximum sleep time. Skipping sleep.\n");
     }
+
+    return 0.0; // Indicate that no sleep was performed
 }

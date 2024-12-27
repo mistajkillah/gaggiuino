@@ -36,6 +36,16 @@ constexpr double NANO_TO_MSEC = 1e6;
 // };
 
 
+struct Iteration {
+    int index;
+    double sleeptime_ns = 0.0;
+    //bool exceeds_ten = false;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start;
+    std::chrono::time_point<std::chrono::high_resolution_clock> end;
+    std::chrono::duration<double, std::nano> elapsed;
+    double totalTime_ms = 0.0;
+};
+
 class SystemFSM {
 private:
   SystemState currentState;
@@ -49,10 +59,14 @@ private:
   void handleComplete();
 
   // Helper for latency calculation
-  inline double calcualteTotalTime(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
+  // inline double calcualteTotalTime(const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
+  //   const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart);
+  // inline void executeSleep(Iteration& iter);
+  // inline void executeSleep(const std::chrono::nanoseconds& elapsedTime);
+  inline double executeSleep(const std::chrono::duration<double, std::nano>& elapsed);
+  inline double calculateTotalTime(
+    const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
     const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart);
-  inline void executeSleep(Iteration& iter);
-  inline void executeSleep(const std::chrono::nanoseconds& elapsedTime);
 public:
   SystemFSM();
   inline bool step();
