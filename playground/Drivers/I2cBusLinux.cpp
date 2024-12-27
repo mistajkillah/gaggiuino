@@ -43,7 +43,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char devAddr,
     struct i2c_msg i2cMessage;
     struct i2c_rdwr_ioctl_data i2cIoctlData;
 
-    LOG_MASK_I2C(
+    LOG_I2C(
                "busId = %d, devAddr = 0x%02x, byteCount = %u\n",
                _busId,
                devAddr,
@@ -64,7 +64,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char devAddr,
 
     if (fd == -1)
     {
-        LOG_MASK_ERROR( "open failed, bus = %d\n", _busId);
+        LOG_ERROR( "open failed, bus = %d\n", _busId);
 
         goto end;
     }
@@ -73,7 +73,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char devAddr,
     /* set address */
     if (ioctl(busFD, I2C_SLAVE_FORCE, devAddr) == -1)
     {
-        LOG_MASK_ERROR( "ioctl I2C_SLAVE_FORCE failed\n");
+        LOG_ERROR( "ioctl I2C_SLAVE_FORCE failed\n");
         goto finis;
     }
 #endif
@@ -88,7 +88,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char devAddr,
 
     if (ioctl(fd, I2C_RDWR, &i2cIoctlData) == -1)
     {
-        LOG_MASK_ERROR(
+        LOG_ERROR(
                    "ioctl failed, bus = %d, device = 0x%02x, errno = %d <%s>\n",
                    _busId,
                    devAddr,
@@ -104,7 +104,7 @@ end:
 
     i2c_bus_close(fd);
 
-    LOG_MASK_I2C( "status = %s\n", GenericDriverStatus_str(status));
+    LOG_I2C( "status = %s\n", GenericDriverStatus_str(status));
 
     return (status);
 }
@@ -125,7 +125,7 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char devAddr,
     struct i2c_msg i2cMessage;
     struct i2c_rdwr_ioctl_data i2cIoctlData;
 
-    LOG_MASK_I2C(
+    LOG_I2C(
                "busId = %d, devAddr = 0x%2x, byteCount = %u, timeoutMsec = %u\n",
                _busId,
                devAddr,
@@ -145,7 +145,7 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char devAddr,
 
     if (fd == -1)
     {
-        LOG_MASK_ERROR( "open failed, bus = %d\n", _busId);
+        LOG_ERROR( "open failed, bus = %d\n", _busId);
 
         goto end;
     }
@@ -153,7 +153,7 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char devAddr,
 #if 0
     /* set address */
     if (ioctl(busFD, I2C_SLAVE_FORCE, devAddr) < 0) {
-        LOG_MASK_ERROR("ioctl I2C_SLAVE_FORCE failed\n");
+        LOG_ERROR("ioctl I2C_SLAVE_FORCE failed\n");
         goto finis;
     }
 #endif
@@ -168,7 +168,7 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char devAddr,
        
     if (ioctl(fd, I2C_RDWR, &i2cIoctlData) == -1)
     {
-        LOG_MASK_ERROR(
+        LOG_ERROR(
                    "ioctl failed, bus = %d, device = 0x%02x, errno = %d <%s>\n",
                    _busId,
                    devAddr,
@@ -184,7 +184,7 @@ end:
 
     i2c_bus_close(fd);
 
-    LOG_MASK_I2C( "status = %s\n", GenericDriverStatus_str(status));
+    LOG_I2C( "status = %s\n", GenericDriverStatus_str(status));
 
     return (status);
 }
@@ -208,7 +208,7 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
     struct i2c_msg i2cMessages[2];
     struct i2c_rdwr_ioctl_data i2cIoctlData;
 
-    LOG_MASK_I2C(
+    LOG_I2C(
                "busId = %d, devAddr = 0x%02x, commandByteCount = %u, dataByteCount = %u\n",
                _busId,
                devAddr,
@@ -226,14 +226,14 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
 
     if ((command == nullptr) || (data == nullptr))
     {
-        LOG_MASK_ERROR( "null pointer\n");
+        LOG_ERROR( "null pointer\n");
 
         goto end;
     }
 
     if ((commandByteCount == 0) || (dataByteCount == 0))
     {
-        LOG_MASK_ERROR(
+        LOG_ERROR(
             "invalid byte count, commandByteCount = %u, dataByteCount = %u\n",
             commandByteCount,
             dataByteCount);
@@ -247,7 +247,7 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
 
     if (fd == -1)
     {
-        LOG_MASK_ERROR( "open failed, bus = %d\n", _busId);
+        LOG_ERROR( "open failed, bus = %d\n", _busId);
 
         goto end;
     }
@@ -267,7 +267,7 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
 
     if (ioctl(fd, I2C_RDWR, &i2cIoctlData) == -1)
     {
-        LOG_MASK_ERROR(
+        LOG_ERROR(
                    "ioctl failed, bus = %d, device = 0x%02x, errno = %d <%s>\n",
                    _busId,
                    devAddr,
@@ -283,7 +283,7 @@ end:
 
     i2c_bus_close(fd);
 
-    LOG_MASK_I2C( "status = %s\n", GenericDriverStatus_str(status));
+    LOG_I2C( "status = %s\n", GenericDriverStatus_str(status));
 
     return (status);
 }
@@ -298,7 +298,7 @@ int I2cBusLinux::i2c_bus_open(int busId)
 
     busFD = open(wbuf, O_RDWR);
     if (busFD < 0) {
-        LOG_MASK_ERROR( "can't open %s, %d\n", wbuf, errno);
+        LOG_ERROR( "can't open %s, %d\n", wbuf, errno);
     }
 
     /* done */
@@ -311,7 +311,7 @@ void  I2cBusLinux::i2c_bus_close(int busFD)
     if (busFD >= 0) {
         if (0 != close(busFD))
         {
-            LOG_MASK_ERROR( "can't close bus %d,  %d\n", busFD, errno);
+            LOG_ERROR( "can't close bus %d,  %d\n", busFD, errno);
         }
         busFD = -1;
     }

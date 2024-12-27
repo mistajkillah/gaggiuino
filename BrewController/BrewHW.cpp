@@ -60,7 +60,7 @@ BrewHW::BrewHW() :
   spiDevice(0, 0, 4000000, 8, 1000, 0, "SpiDevice0.0"),
   tempSensor(&spiDevice, "BoilerTemp"),
   i2c(1, "i2c1"),
-  adc(&i2c, "WaterTemp", 0x48),
+  adc(&i2c, "WaterPressure", 0x48),
   pump(pump_ZC_SENSE_PIN, pumpCTRL_PIN, POWER_LINE_FREQ, PUMP_FLOW_AT_ZERO) {
 
 
@@ -90,6 +90,19 @@ int BrewHW::initializeHW() {
   gpioSetMode(steamSENSE_PIN, PI_INPUT);
   gpioSetPullUpDown(brewSENSE_PIN, PI_PUD_UP);
   gpioSetPullUpDown(steamSENSE_PIN, PI_PUD_UP);
+
+  gpioSetMode(valveRelayCTRL_PIN, PI_OUTPUT);
+  gpioSetPullUpDown(valveRelayCTRL_PIN, PI_PUD_DOWN);
+  gpioWrite(valveRelayCTRL_PIN, PI_LOW);
+
+  gpioSetMode(boilerRelayCTRL_PIN, PI_OUTPUT);
+  gpioSetPullUpDown(boilerRelayCTRL_PIN, PI_PUD_DOWN);
+  gpioWrite(boilerRelayCTRL_PIN, PI_LOW);
+
+
+
+
+  
   // Set pull-down resistor on the input pin
   //gpioSetPullUpDown(zc_Pin, PI_PUD_DOWN);
 
@@ -202,31 +215,31 @@ void BrewHW::updateSensorStateAsync(SensorState& sensorState) {
   //return sensorState;
 }
 
-// Sample all sensors and return their readings
-SensorState BrewHW::getSensorState() {
-  //std::cout << "Sampling sensors..." << std::endl;
-  static int i = 0;
-  BrewDB& db = BrewDB::getInstance();
-  SensorState sensorState = {};
-  if (SIM)
-  {
-    return db.generateFakeSensorState(i);
-  }
-  else
-  {
+// // Sample all sensors and return their readings
+// SensorState BrewHW::getSensorState() {
+//   //std::cout << "Sampling sensors..." << std::endl;
+//   static int i = 0;
+//   BrewDB& db = BrewDB::getInstance();
+//   SensorState sensorState = {};
+//   if (SIM)
+//   {
+//     return db.generateFakeSensorState(i);
+//   }
+//   else
+//   {
 
-    //memset(&sensorState,0, sizeof(sensorState));
-    sensorState.iteration = i;
-    //sensorState.currentReadTime = std::chrono::system_clock::now();
-    sensorState.steamSwitchState = steamState();
-    sensorState.brewSwitchState = brewState();
-    sensorState.pressure = getPressure();
-    sensorState.temperature = getTemperature();
-  }
-  i++;
+//     //memset(&sensorState,0, sizeof(sensorState));
+//     sensorState.iteration = i;
+//     //sensorState.currentReadTime = std::chrono::system_clock::now();
+//     sensorState.steamSwitchState = steamState();
+//     sensorState.brewSwitchState = brewState();
+//     sensorState.pressure = getPressure();
+//     sensorState.temperature = getTemperature();
+//   }
+//   i++;
 
-  return sensorState;
-}
+//   return sensorState;
+// }
 
 // Reset hardware components to their default state
 void BrewHW::resetHW() {
@@ -272,7 +285,7 @@ void BrewHW::openValve(void) {
   // #if defined LEGO_VALVE_RELAY
   //   digitalWrite(valvePin, LOW);
   // #else
-  digitalWrite(valveCTRL_PIN, HIGH);
+  digitalWrite(valveRelayCTRL_PIN, HIGH);
   //#endif
 }
 
@@ -280,7 +293,7 @@ void BrewHW::closeValve(void) {
   // #if defined LEGO_VALVE_RELAY
   //   digitalWrite(valvePin, HIGH);
   // #else
-  digitalWrite(valveCTRL_PIN, LOW);
+  digitalWrite(valveRelayCTRL_PIN, LOW);
   // #endif
 }
 
@@ -302,5 +315,5 @@ float BrewHW::getPressure() {
   //printf("Analog3: 0x%X  %f\n", val_3, adc.toVoltage(val_3));
 
    // previousPressure = currentPressure;
-  return adc.getValue();//(adc.getValue() - 2666) / 1777.8f; // 16bit
+  return (adc.getValue() - 2666) / 1777.8f; // 16bit
 }

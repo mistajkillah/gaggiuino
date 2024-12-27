@@ -150,11 +150,19 @@ int rpiPinToBCM[41] = {
     21   // Pin 40: GPIO21
 };
 
-const int pumpCTRL_PIN = rpiPinToBCM[37];//YELLOW
-const int pump_ZC_SENSE_PIN=0;
-const int valveCTRL_PIN= 0;
-const int brewSENSE_PIN =rpiPinToBCM[33];//BROWN Pulled UP;
-const int steamSENSE_PIN =rpiPinToBCM[35];//RED Pulled UP
+const int pumpCTRL_PIN = rpiPinToBCM[37];//YELLOW  raspi-gpio set 26 op pd dl 
+
+const int pump_ZC_SENSE_PIN=rpiPinToBCM[36];//Purple  BMC 16 GPIO 27 
+
+const int steamSENSE_PIN =rpiPinToBCM[35];//R ED 12 Pulled UP  broke
+const int brewSENSE_PIN =rpiPinToBCM[33];//BROWN 13 Pulled UP;  
+
+const int valveRelayCTRL_PIN= rpiPinToBCM[31];//RED BCM 6 GPIO 22  pulled down output dl raspi-gpio set 6 op pd dl
+
+const int boilerRelayCTRL_PIN=rpiPinToBCM[29];//FAT YELLOW BCM 5 GPIO 21  pulled down output dl  raspi-gpio set 5 op pd dl 
+
+
 const int POWER_LINE_FREQ =60;
 const float PUMP_FLOW_AT_ZERO=0.2225f;
+
 };

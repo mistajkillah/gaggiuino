@@ -1,3 +1,4 @@
+#include <chrono>
 #include <unistd.h>
 #include <time.h>
 #include <stddef.h>
@@ -41,10 +42,15 @@ void delay(long msec)
   return delayMicroseconds(msec*1000);
 }
 
-
-
-unsigned int millis () {
-  struct timespec t ;
-  clock_gettime ( CLOCK_MONOTONIC_RAW , & t ) ; // change CLOCK_MONOTONIC_RAW to CLOCK_MONOTONIC on non linux computers
-  return t.tv_sec * 1000 + ( t.tv_nsec + 500000 ) / 1000000 ;
+unsigned long millis() {
+    static auto start_time = std::chrono::steady_clock::now(); // Static variable to store the start time
+    auto now = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time).count();
+    return static_cast<unsigned long>(elapsed);
 }
+
+// unsigned int millis () {
+//   struct timespec t ;
+//   clock_gettime ( CLOCK_MONOTONIC_RAW , & t ) ; // change CLOCK_MONOTONIC_RAW to CLOCK_MONOTONIC on non linux computers
+//   return t.tv_sec * 1000 + ( t.tv_nsec + 500000 ) / 1000000 ;
+// }
