@@ -8,7 +8,7 @@ public:
 static const int FALLING=1;
 static const int  RISING=0;
   PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode = PSM::RISING, unsigned char divider = 1, unsigned char interruptMinTimeDiff = 0);
-
+  void Initialize();
   void set(unsigned int value);
 
   long getCounter();
@@ -23,12 +23,15 @@ static const int  RISING=0;
   void setDivider(unsigned char divider = 1);
   void shiftDividerCounter(char value = 1);
 
+  void initTimer(unsigned int freq, int timerInstance);
+
 private:
   static inline void onInterrupt(int gpio, int level, uint32_t tick);
   void calculateSkip();
   void updateControl();
 
   unsigned char _sensePin;
+  unsigned int  _mode;
   unsigned char _controlPin;
   unsigned int _range;
   unsigned char _divider;
@@ -40,6 +43,7 @@ private:
   volatile long _counter;
   volatile long _stopAfter;
   volatile unsigned long _lastMillis;
+
 };
 #ifdef __cplusplus
 }

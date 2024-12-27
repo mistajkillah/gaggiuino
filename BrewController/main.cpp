@@ -12,8 +12,8 @@ using namespace std;
 int main(int argc, char *argv[])
 {
    // int ret = 0;
-    Rpc rpc(9050);
-    rpc.start();
+    //Rpc rpc(9050);
+    //rpc.start();
     
 
     SystemFSM systemFsm;

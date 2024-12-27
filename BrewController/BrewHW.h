@@ -7,7 +7,7 @@
 #include "I2cBus.h"
 #include "I2cBusLinux.h"
 #include "ADS1X15.h"
-
+#include "Pump.h"
 #include "MAX6675_TempSensor.h"
 #include "SensorStructs.h"
 //class Measurments;
@@ -25,11 +25,17 @@ public:
     int initializeHW();
     
     SensorState getSensorState();
-    SensorState getSensorStateAsync();
+    SensorState updateSensorStateAsync();
     SensorStateSnapshot getSensorStateSnapshot();
+    float getPumpFlow(float elapsedTimeSec, long& currentPumpClicks, float& smoothedPressure);
+    
+    bool isBoilerFull(SensorState& sensorState);
+void updateSensorStateAsync(SensorState& sensorState);
     void resetHW();
     void cleanupHW();
+    void fillBoiler();
 
+    void stopFillBoiler();
 
 
 private:
@@ -50,6 +56,7 @@ private:
     void setSteamBoilerRelayOn(void);
     void setSteamBoilerRelayOff(void);
     int brewState(void);
+
     int steamState(void);
     int waterPinState(void);
     void openValve(void);
@@ -59,7 +66,7 @@ private:
 
     void sensorsReadPressure(void);
 
-    int sensorsReadFlow(float elapsedTimeSec);
+ 
 
     void calculateWeightAndFlow(void);
 
@@ -67,6 +74,7 @@ private:
 
     float getTemperature();
     float getPressure();
+    void fillBoilerUntilThreshod(unsigned long elapsedTime);
     //scales vars
     //Measurements weightMeasurements;
     // Timers
@@ -95,7 +103,7 @@ private:
     MAX6675_TempSensor tempSensor;
     I2cBusLinux i2c;
     ADS1015 adc;
-
+    Pump pump;
 
 // Array to map physical pin to BCM GPIO pin
 int rpiPinToBCM[41] = {
@@ -147,7 +155,6 @@ const int pump_ZC_SENSE_PIN=0;
 const int valveCTRL_PIN= 0;
 const int brewSENSE_PIN =rpiPinToBCM[33];//BROWN Pulled UP;
 const int steamSENSE_PIN =rpiPinToBCM[35];//RED Pulled UP
-
-
-
+const int POWER_LINE_FREQ =60;
+const float PUMP_FLOW_AT_ZERO=0.2225f;
 };

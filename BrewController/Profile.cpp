@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "Profile.h"
 
-static BrewConfig runningCfg;
+//static BrewConfig runningCfg;
 
   BrewConfig getEepromDefaults(void) {
     BrewConfig defaultData;

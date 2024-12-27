@@ -2,6 +2,7 @@
 #include <pigpio.h>
 #include <stddef.h>
 #include "Arduino.h"
+#include "GenericDrivers.h"
 #include "PSM.h"
 #ifdef __cplusplus
 extern "C" {
@@ -11,24 +12,33 @@ PSM* _thePSM;
 PSM::PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode, unsigned char divider, unsigned char interruptMinTimeDiff) {
   _thePSM = this;
 
-  pinSetPullUpDown(sensePin, INPUT_PULLUP);
+  
   PSM::_sensePin = sensePin;
-
-  pinMode(controlPin, OUTPUT);
+  PSM::_mode=mode;
+  
   PSM::_controlPin = controlPin;
 
   PSM::_divider = divider > 0 ? divider : 1;
 
-  uint8_t interruptNum = digitalPinToInterrupt(PSM::_sensePin);
-
-  if (interruptNum != NOT_AN_INTERRUPT) {
-    attachInterrupt(interruptNum, onInterrupt, mode);
-  }
-
+  
   PSM::_range = range;
   PSM::_interruptMinTimeDiff = interruptMinTimeDiff;
 }
 
+void PSM::Initialize()
+{   
+  pinSetPullUpDown(_sensePin, INPUT_PULLUP);
+  
+
+  pinMode(_controlPin, OUTPUT);
+
+
+  uint8_t interruptNum = digitalPinToInterrupt(PSM::_sensePin);
+
+  if (interruptNum != NOT_AN_INTERRUPT) {
+    attachInterrupt(interruptNum, onInterrupt, _mode);
+  }
+}
 void onPSMInterrupt() __attribute__((weak));
 void onPSMInterrupt() {}
 
@@ -146,6 +156,10 @@ void PSM::setDivider(unsigned char divider) {
 
 void PSM::shiftDividerCounter(char value) {
   PSM::_dividerCounter += value;
+}
+
+void PSM::initTimer(unsigned int freq, int timerInstance) {
+  LOG_ERROR("NOT IMPLEMENTED INIT TIMER FUNCITON");
 }
 #ifdef __cplusplus
 }

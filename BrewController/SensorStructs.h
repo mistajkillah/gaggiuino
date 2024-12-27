@@ -6,6 +6,7 @@
 #include <chrono>
 #include <sstream>
 
+
 static inline std::string timePointToString(const std::chrono::system_clock::time_point& timestamp) {
     std::ostringstream ss;
     auto time_t_timestamp = std::chrono::system_clock::to_time_t(timestamp);
@@ -19,9 +20,24 @@ static inline std::string timePointToString(const std::chrono::system_clock::tim
 struct SensorState {
     uint32_t iteration = 0;
     char datestamp[30] = {0};
-    std::chrono::system_clock::time_point timestamp; // Native timestamp    
-    uint32_t timeSinceBrewStart = 0;
-    uint32_t timeSinceSystemStart = 0;
+    std::chrono::system_clock::time_point currentReadTime_pres; // Native timestamp    
+    std::chrono::system_clock::time_point lastReadTime_pres; // Native timestamp    
+
+        std::chrono::system_clock::time_point currentReadTime_temp; // Native timestamp    
+    std::chrono::system_clock::time_point lastReadTime_temp; // Native timestamp    
+    
+        //std::chrono::system_clock::time_point currentReadTime; // Native timestamp    
+    //std::chrono::system_clock::time_point lastReadTime; // Native timestamp    
+    //uint32_t timeSinceLastRead_ms=0; // Native timestamp    
+    //float timeSinceLastRead_s=0; // Native timestamp        
+
+    uint32_t timeSinceLastRead_pres_ms=0; // Native timestamp    
+    float timeSinceLastRead_pres_s=0; // Native timestamp    
+
+    uint32_t timeSinceLastRead_temp_ms=0; // Native timestamp    
+    float timeSinceLastRead_temp_s=0; // Native timestamp    
+    std::chrono::system_clock::time_point timeSinceBrewStart;
+    std::chrono::system_clock::time_point timeSinceSystemStart;
     bool brewSwitchState = false;
     bool steamSwitchState = false;
     bool hotWaterSwitchState = false;
@@ -39,6 +55,8 @@ struct SensorState {
     float weight = 0.0f;
     float shotWeight = 0.0f;
     float smoothedPressure = 0.0f;
+    float previousSmoothedPressure = 0.0f;
+    float previousSmoothedPumpFlow = 0.0f;
     float smoothedPumpFlow = 0.0f;
     float smoothedWeightFlow = 0.0f;
     float consideredFlow = 0.0f;
@@ -46,15 +64,66 @@ struct SensorState {
     uint16_t waterLvl = 0;
     bool tofReady = false;
 
+    //unsigned long systemHealthTimer=0;
+    //unsigned long pageRefreshTimer=0;
+    unsigned long pressureTimer=0;
+    //unsigned long brewingTime=0;
+    //unsigned long thermoTimer=0;
+    //unsigned long scalesTimer=0;
+    //unsigned long flowTimer=0;
+    //unsigned long steamTim0;
+  // Set time since system start
+    void inline setTimeSinceSystemStart() {
+        timeSinceSystemStart = std::chrono::system_clock::now();
+    }
+
+    // Set time since brewing start
+    void inline setTimeSinceBrewStart() {
+        timeSinceBrewStart = std::chrono::system_clock::now();
+    }
+
+    // Get time since system start in milliseconds
+    uint32_t inline getTimeSinceSystemStart() const {
+        auto now = std::chrono::system_clock::now();
+        return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now - timeSinceSystemStart).count());
+    }
+
+    // Get time since brewing start in milliseconds
+    uint32_t inline getTimeSinceBrewStart() const {
+        auto now = std::chrono::system_clock::now();
+        return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now - timeSinceBrewStart).count());
+    }
+    
+    // void inline updateReadTime()
+    // {
+    //     lastReadTime=currentReadTime;
+    //     currentReadTime = std::chrono::system_clock::now();
+    //     timeSinceLastRead_ms=static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(currentReadTime - lastReadTime).count());
+    //     timeSinceLastRead_s=timeSinceLastRead_ms/1000.0;
+    // }
+     void inline updatePressureReadTime()
+    {
+        lastReadTime_pres=currentReadTime_pres;
+        currentReadTime_pres = std::chrono::system_clock::now();
+        timeSinceLastRead_pres_ms=static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(currentReadTime_pres - lastReadTime_pres).count());
+        timeSinceLastRead_pres_s=timeSinceLastRead_pres_ms/1000.0;
+    }
+     void inline updateTemperatureReadTime()
+    {
+        lastReadTime_temp=currentReadTime_temp;
+        currentReadTime_temp = std::chrono::system_clock::now();
+        timeSinceLastRead_temp_ms=static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(currentReadTime_temp - lastReadTime_temp).count());
+        timeSinceLastRead_temp_s=timeSinceLastRead_temp_ms/1000.0;
+    }
     std::string& toString()
 {
     static std::string result;
     std::ostringstream oss;
     oss << "Iteration: " << iteration << "\n";
     oss << "Datestamp: " << datestamp << "\n";
-    oss << "Timestamp: " << timePointToString(timestamp) << "\n";
-    //oss << "Time Since Brew Start: " << timeSinceBrewStart << " ms\n";
-    //oss << "Time Since System Start: " << timeSinceSystemStart << " ms\n";
+    //oss << "Timestamp: " << timePointToString(currentReadTime) << "\n";
+    oss << "Time Since Brew Start: " << timePointToString(timeSinceBrewStart) << " ms\n";
+    oss << "Time Since System Start: " << timePointToString(timeSinceSystemStart) << " ms\n";
     oss << "Brew Switch State: " << brewSwitchState << "\n";
     oss << "Steam Switch State: " << steamSwitchState << "\n";
     //oss << "Hot Water Switch State: " << hotWaterSwitchState << "\n";
