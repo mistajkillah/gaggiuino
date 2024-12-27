@@ -1,5 +1,8 @@
 
+brewController
+*.a
 *.o
+Drivers/*.o
 .idea/
 .vscode/
 .pio/
