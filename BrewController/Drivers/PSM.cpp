@@ -43,7 +43,9 @@ void onPSMInterrupt() __attribute__((weak));
 void onPSMInterrupt() {}
 
 void PSM::onInterrupt(int gpio, int level, uint32_t tick){
+  
   if (_thePSM->_interruptMinTimeDiff > 0 && millis() - _thePSM->_lastMillis < _thePSM->_interruptMinTimeDiff) {
+    printf("interupt too quick");
     return;
   }
   _thePSM->_lastMillis = millis();
@@ -80,7 +82,7 @@ void PSM::stopAfter(long counter) {
 
 void PSM::calculateSkip() {
   PSM::_lastMillis = millis();
-
+  printf("calcualting skip\n");
   PSM::_a += PSM::_value;
 
   if (PSM::_a >= PSM::_range) {

@@ -63,8 +63,6 @@ BrewHW::BrewHW() :
   adc(&i2c, "WaterPressure", 0x48),
   pump(pump_ZC_SENSE_PIN, pumpCTRL_PIN, POWER_LINE_FREQ, PUMP_FLOW_AT_ZERO) {
 
-
-
 }
 
 // Destructor
@@ -168,52 +166,6 @@ bool BrewHW::isBoilerFull(SensorState& sensorState) {
   return boilerFull;
 }
 
-void BrewHW::updateSensorStateAsync(SensorState& sensorState) {
-  static int i = 0;
-  std::future<float> pressureFuture;
-  std::future<float> temperatureFuture;
-
-  if (sensorState.timeSinceLastRead_pres_ms > GET_PRESSURE_READ_EVERY)
-  {
-    // Start parallel tasks using std::async
-    pressureFuture = std::async(std::launch::async, &BrewHW::getPressure, this);
-  }
-  if (sensorState.timeSinceLastRead_temp_ms > GET_KTYPE_READ_EVERY)
-  {
-    // Start parallel tasks using std::async
-    temperatureFuture = std::async(std::launch::async, &BrewHW::getTemperature, this);
-  }
-
-  //auto steamSwitchFuture = std::async(std::launch::async, &BrewHW::steamState, this);
-  //auto brewSwitchFuture = std::async(std::launch::async, &BrewHW::brewState, this);
-
-  sensorState.steamSwitchState = steamState();
-  sensorState.brewSwitchState = brewState();
-  // Set the iteration and timestamp
-  sensorState.iteration = i;
-  //sensorState.updateReadTime();
-  // Wait for the results and assign them
-
-  if (sensorState.timeSinceLastRead_pres_ms > GET_PRESSURE_READ_EVERY)
-  {
-    // Start parallel tasks using std::async
-    sensorState.updatePressureReadTime();
-    sensorState.pressure = pressureFuture.get();
-    
-  }
-  if (sensorState.timeSinceLastRead_temp_ms > GET_KTYPE_READ_EVERY)
-  {
-    // Start parallel tasks using std::async
-    sensorState.updateTemperatureReadTime();
-    sensorState.temperature = temperatureFuture.get();
-  }
-
-  //sensorState.steamSwitchState = steamSwitchFuture.get();
-  //sensorState.brewSwitchState = brewSwitchFuture.get();
-
-  i++;
-  //return sensorState;
-}
 
 // // Sample all sensors and return their readings
 // SensorState BrewHW::getSensorState() {

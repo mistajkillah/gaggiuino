@@ -5,8 +5,8 @@ extern "C" {
 class PSM
 {
 public:
-static const int FALLING=1;
-static const int  RISING=0;
+ static const int FALLING=1;
+ static const int  RISING=0;
   PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, int mode = PSM::RISING, unsigned char divider = 1, unsigned char interruptMinTimeDiff = 0);
   void Initialize();
   void set(unsigned int value);
@@ -30,19 +30,19 @@ private:
   void calculateSkip();
   void updateControl();
 
-  unsigned char _sensePin;
-  unsigned int  _mode;
-  unsigned char _controlPin;
-  unsigned int _range;
-  unsigned char _divider;
+  unsigned char _sensePin=0;
+  unsigned int  _mode=0;
+  unsigned char _controlPin=0;
+  unsigned int _range=0;
+  unsigned char _divider=0;
   unsigned char _dividerCounter = 1;
-  unsigned char _interruptMinTimeDiff;
-  volatile unsigned int _value;
-  volatile unsigned int _a;
-  volatile bool _skip;
-  volatile long _counter;
-  volatile long _stopAfter;
-  volatile unsigned long _lastMillis;
+  unsigned char _interruptMinTimeDiff=0;
+  volatile unsigned int _value=0;
+  volatile unsigned int _a=0;
+  volatile bool _skip=0;
+  volatile long _counter=0;
+  volatile long _stopAfter=0;
+  volatile unsigned long _lastMillis=0;
 
 };
 #ifdef __cplusplus

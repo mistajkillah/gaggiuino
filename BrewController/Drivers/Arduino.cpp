@@ -3,12 +3,13 @@
 #include <time.h>
 #include <stddef.h>
 #include "stdint.h"
+#include "GenericDrivers.h"
 #include <pigpio.h>
 
 void attachInterrupt(int inputPin,void callback(int gpio, int level, uint32_t tick), int c)
 {
   gpioSetAlertFunc(inputPin, callback);
-
+  LOG_ERROR("interupt attached to %d\n", inputPin);
 }
 int digitalPinToInterrupt(int pin)
 {
@@ -42,7 +43,7 @@ void delay(long msec)
   return delayMicroseconds(msec*1000);
 }
 
-unsigned long millis() {
+unsigned long  millis() {
     static auto start_time = std::chrono::steady_clock::now(); // Static variable to store the start time
     auto now = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time).count();

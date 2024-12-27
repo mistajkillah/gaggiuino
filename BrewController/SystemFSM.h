@@ -46,7 +46,8 @@ private:
   SensorState sensorState = {};
   // Private helper functions for each state
   void handleInitialize();
-  SystemState handleSystemIdleing();
+  void updateSensorStateAsync();
+SystemState handleSystemIdleing();
   bool isBoilerFull();
   void handleRpc();
   void handleBrewSetup();

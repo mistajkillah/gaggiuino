@@ -21,6 +21,7 @@
 #include "SystemFSM.h"
 #include "BrewHW.h"
 #include "BrewDB.h"
+#include <future>
 
 
 // Constructor
@@ -36,10 +37,57 @@ void SystemFSM::handleInitialize() {
   currentState = SystemState::SystemIdeling;
 }
 
+void SystemFSM::updateSensorStateAsync() {
+    static int i = 0;
+    std::future<float> pressureFuture;
+    std::future<float> temperatureFuture;
+
+    // Check and start async tasks based on conditions
+    if (sensorState.getTimeSincelastRead_pres() > GET_PRESSURE_READ_EVERY) {
+        // Use a lambda to capture 'hw' explicitly
+        pressureFuture = std::async(std::launch::async, [this]() {
+            return hw.getPressure();
+        });
+    }
+    if (sensorState.getTimeSincelastRead_temp() > GET_KTYPE_READ_EVERY) {
+        // Use a lambda to capture 'hw' explicitly
+        temperatureFuture = std::async(std::launch::async, [this]() {
+            return hw.getTemperature();
+        });
+    }
+
+    // Update switch states directly
+    sensorState.steamSwitchState = hw.steamState();
+    sensorState.brewSwitchState = hw.brewState();
+
+    // Increment iteration
+    sensorState.iteration = i;
+
+    // Wait for temperature and update state
+    if (sensorState.getTimeSincelastRead_temp() > GET_KTYPE_READ_EVERY) {
+        sensorState.updateTemperatureReadTime();
+        if (temperatureFuture.valid()) {
+            sensorState.temperature = temperatureFuture.get();
+        }
+    }
+
+    // Wait for pressure and update state
+    if (sensorState.getTimeSincelastRead_pres() > GET_PRESSURE_READ_EVERY) {
+        sensorState.updatePressureReadTime();
+        if (pressureFuture.valid()) {
+            sensorState.pressure = pressureFuture.get();
+        }
+        updatePressue(); // Additional processing for pressure
+    }
+
+    i++;
+}
+
 SystemState SystemFSM::handleSystemIdleing() {
 
-  hw.updateSensorStateAsync(sensorState);
-  updatePressue();
+  updateSensorStateAsync();
+  //hw.updateSensorStateAsync(sensorState);
+  //updatePressue();
   BLOG_ERROR("%s\n", sensorState.toString().c_str());
   if (false == sensorState.brewSwitchState)
   {
@@ -248,7 +296,7 @@ inline double SystemFSM::calculateTotalTime(
 
 
 inline double SystemFSM::executeSleep(const std::chrono::duration<double, std::nano>& elapsed) {
-  constexpr long maxNsSleep = 10'000'000; // 10ms in nanoseconds
+  constexpr long maxNsSleep = 10'000'00000; // 10ms in nanoseconds
   constexpr long minNsSleep = 1'000'000;  // 1ms in nanoseconds
 
   // Calculate remaining sleep time

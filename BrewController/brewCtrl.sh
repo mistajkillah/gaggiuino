@@ -16,6 +16,14 @@ gpio_init() {
     raspi-gpio set $STEAM_PIN ip pu
 }
 
+# Reset GPIO pins to default states
+gpio_reset() {
+    raspi-gpio set $BOILER_PIN op pd dl
+    raspi-gpio set $VALVE_PIN op pd dl
+    raspi-gpio set $PUMP_PIN op pd dl
+    echo "All GPIO pins reset to default states."
+}
+
 # Set GPIO pin state
 set_gpio() {
     local pin=$1
@@ -89,9 +97,11 @@ brewCtrl() {
 if [[ $1 == "init" ]]; then
     gpio_init
     echo "GPIO pins initialized."
+elif [[ $1 == "reset" ]]; then
+    gpio_reset
 elif [[ $# -ge 1 ]]; then
     brewCtrl $1 $2
 else
-    echo "Usage: $0 (init | boiler|valve|pump|brew|steam) [on|off]"
+    echo "Usage: $0 (init | reset | boiler|valve|pump|brew|steam) [on|off]"
     exit 1
 fi
