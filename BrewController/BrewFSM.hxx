@@ -14,12 +14,12 @@ enum class BrewState {
 // Struct to hold iteration data for the control loop
 struct Iteration {
     int index;
-    double sleeptime;
+    double sleeptime_ns;
     bool exceeds_ten;
     std::chrono::time_point<std::chrono::high_resolution_clock> start;
     std::chrono::time_point<std::chrono::high_resolution_clock> end;
     std::chrono::duration<double, std::nano> elapsed;
-    double latency;
+    double totalTime_ms;
 };
 
 class BrewFSM {

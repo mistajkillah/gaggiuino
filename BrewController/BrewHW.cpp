@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
-
+#include <future>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -74,7 +74,7 @@ BrewHW::~BrewHW() {
 
 // Initialize hardware components
 int BrewHW::initializeHW() {
-    std::cout << "Initializing hardware components..." << std::endl;
+    BLOG_DEBUG( "Initializing hardware components...");
 
     // Initialize pigpio library
     if (gpioInitialise() < 0) {
@@ -107,7 +107,7 @@ int BrewHW::initializeHW() {
 
 // Sample all sensors and return their readings
 SensorStateSnapshot BrewHW::getSensorStateSnapshot() {
-    std::cout << "Sampling sensors snapshot..." << std::endl;
+    //std::cout << "Sampling sensors snapshot..." << std::endl;
     static int i = 0;
     BrewDB &db = BrewDB::getInstance();
     SensorStateSnapshot sensorStateSnapshot;
@@ -125,9 +125,40 @@ SensorStateSnapshot BrewHW::getSensorStateSnapshot() {
 }
 
 
+SensorState BrewHW::getSensorStateAsync() {
+    static int i = 0;
+    BrewDB &db = BrewDB::getInstance();
+    SensorState sensorState = {};
+
+    if (SIM) {
+        return db.generateFakeSensorState(i);
+    } else {
+        // Start parallel tasks using std::async
+        auto pressureFuture = std::async(std::launch::async, &BrewHW::getPressure, this);
+        auto temperatureFuture = std::async(std::launch::async, &BrewHW::getTemperature, this);
+        //auto steamSwitchFuture = std::async(std::launch::async, &BrewHW::steamState, this);
+        //auto brewSwitchFuture = std::async(std::launch::async, &BrewHW::brewState, this);
+        
+        sensorState.steamSwitchState=steamState();
+        sensorState.brewSwitchState=brewState();
+        // Set the iteration and timestamp
+        sensorState.iteration = i;
+        sensorState.timestamp = std::chrono::system_clock::now();
+
+        // Wait for the results and assign them
+        sensorState.pressure = pressureFuture.get();
+        sensorState.temperature = temperatureFuture.get();
+        //sensorState.steamSwitchState = steamSwitchFuture.get();
+        //sensorState.brewSwitchState = brewSwitchFuture.get();
+    }
+
+    i++;
+    return sensorState;
+}
+
 // Sample all sensors and return their readings
 SensorState BrewHW::getSensorState() {
-    std::cout << "Sampling sensors..." << std::endl;
+    //std::cout << "Sampling sensors..." << std::endl;
     static int i = 0;
     BrewDB &db = BrewDB::getInstance();
     SensorState sensorState={};
@@ -214,17 +245,17 @@ return tempSensor.readCelsius();
 
 float BrewHW::getPressure()
 {
-  int16_t val_0 = adc.readADC(0);  
-  int16_t val_1 = adc.readADC(1);  
-  int16_t val_2 = adc.readADC(2);  
-  int16_t val_3 = adc.readADC(3);  
+  //int16_t val_0 = adc.readADC(0);  
+  //int16_t val_1 = adc.readADC(1);  
+  //int16_t val_2 = adc.readADC(2);  
+  //int16_t val_3 = adc.readADC(3);  
 
-  float f = adc.toVoltage(1);  // voltage factor
-  printf("Analog0: 0x%X  %f\n", val_0, adc.toVoltage(val_0));
-  printf("Analog1: 0x%X  %f\n", val_1, adc.toVoltage(val_1));
-  printf("Analog2: 0x%X  %f\n", val_2, adc.toVoltage(val_2));
-  printf("Analog3: 0x%X  %f\n", val_3, adc.toVoltage(val_3));
+  //float f = adc.toVoltage(1);  // voltage factor
+  //printf("Analog0: 0x%X  %f\n", val_0, adc.toVoltage(val_0));
+  //printf("Analog1: 0x%X  %f\n", val_1, adc.toVoltage(val_1));
+  //printf("Analog2: 0x%X  %f\n", val_2, adc.toVoltage(val_2));
+  //printf("Analog3: 0x%X  %f\n", val_3, adc.toVoltage(val_3));
 
    // previousPressure = currentPressure;
-   return (adc.getValue() - 2666) / 1777.8f; // 16bit
+   return adc.getValue();//(adc.getValue() - 2666) / 1777.8f; // 16bit
 }

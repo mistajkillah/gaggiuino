@@ -25,6 +25,7 @@ public:
     int initializeHW();
     
     SensorState getSensorState();
+    SensorState getSensorStateAsync();
     SensorStateSnapshot getSensorStateSnapshot();
     void resetHW();
     void cleanupHW();
