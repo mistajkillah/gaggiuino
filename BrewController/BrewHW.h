@@ -143,7 +143,7 @@ int rpiPinToBCM[41] = {
 
 const int pumpCTRL_PIN = rpiPinToBCM[37];//YELLOW
 const int pump_ZC_SENSE_PIN=0;
-const int valuveCTRL_PIN= 0;
+const int valveCTRL_PIN= 0;
 const int brewSENSE_PIN =rpiPinToBCM[33];//BROWN Pulled UP;
 const int steamSENSE_PIN =rpiPinToBCM[35];//RED Pulled UP
 

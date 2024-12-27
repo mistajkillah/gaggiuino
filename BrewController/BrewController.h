@@ -18,17 +18,17 @@
 #define thermoCS      2 //PA6
 #define thermoCLK     3 //PA5
 
-#define zcPin         4 //PA0
-#define brewPin       5 //PC14
-#define relayPin      6 //PA15
-#define dimmerPin     7 //PA1
-#define steamPin      8 //PC15
-#define valvePin      9 //PC13
-#if defined(SINGLE_BOARD)
-#define waterPin      10 //PB15
-#else
-#define waterPin      11 //PA12
-#endif
+//#define zcPin         4 //PA0
+//#define brewPin       5 //PC14
+//#define relayPin      6 //PA15
+//#define dimmerPin     7 //PA1
+//#define steamPin      8 //PC15
+//#define valvePin      9 //PC13
+// #if defined(SINGLE_BOARD)
+// #define waterPin      10 //PB15
+// #else
+// #define waterPin      11 //PA12
+// #endif
 
 #ifdef PCBV2
 // PCB V2

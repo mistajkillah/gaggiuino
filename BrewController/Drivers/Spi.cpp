@@ -13,7 +13,7 @@ SpiBus::Lock::Lock(SpiBus* bus) :
 
   lock(); //try_lock() //todo
   
-  LOG_MASK_SPI( "bus=%s, acquired=%d\n", bus->_name, owns_lock());
+  LOG_SPI( "bus=%s, acquired=%d\n", bus->_name, owns_lock());
 }
 
 
@@ -24,5 +24,5 @@ SpiBus::Lock::Lock(SpiBus* bus) :
  */
 SpiBus::Lock::~Lock() {
   
-  LOG_MASK_SPI( "bus=%s\n", bus->_name);
+  LOG_SPI( "bus=%s\n", bus->_name);
 }

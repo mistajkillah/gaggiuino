@@ -20,7 +20,7 @@ LDFLAGS = -L./Drivers -L./Drivers/pigpio/lib -lGenericDrivers -lpigpio -lrt -lsq
 OUTPUT = brewController
 
 # Source files
-SRC = main.cpp BrewHW.cpp BrewDB.cpp Profile.cpp measurements.cpp SimpleKalmanFilter.cpp movingAvg.cpp Rpc.cpp
+SRC = main.cpp SystemFSM.cpp BrewHW.cpp BrewDB.cpp Profile.cpp measurements.cpp SimpleKalmanFilter.cpp movingAvg.cpp Rpc.cpp
 OBJ = $(SRC:.cpp=.o)
 
 # Default target

@@ -19,7 +19,7 @@ I2cBus::Lock::Lock(I2cBus *bus) :
 {
     try_lock();
     
-    LOG_MASK_I2C( "bus=%s, acquired=%d\n", bus->_name,  owns_lock());
+    LOG_I2C( "bus=%s, acquired=%d\n", bus->_name,  owns_lock());
 }
 
 
@@ -27,7 +27,7 @@ I2cBus::Lock::Lock(I2cBus *bus) :
 I2cBus::Lock::~Lock()
 {
     
-    LOG_MASK_I2C( "bus=%s\n", bus->_name);
+    LOG_I2C( "bus=%s\n", bus->_name);
 }
 #ifdef __cplusplus
 }
