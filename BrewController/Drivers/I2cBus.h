@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "GenericDrivers.h"
 
 #ifdef __cplusplus
@@ -39,12 +38,17 @@ public:
                                 unsigned char* data,
                                 unsigned int byteCount)
     {
+        (void)devAddr;
+        (void)data;
+        (void)byteCount;
         return GenericDriverStatus_NotImplemented;
     }
 
     virtual GenericDriverStatus readByte(unsigned char devAddr,
                                 unsigned char &data)
     {
+        (void)devAddr;
+        (void)data;
         return GenericDriverStatus_NotImplemented;
     }
 
@@ -53,12 +57,18 @@ public:
                                  unsigned int byteCount,
                                  unsigned int timeoutMsec = WRITE_TIMEOUT_MSEC)
     {
+        (void)devAddr;
+        (void)data;
+        (void)byteCount;
+        (void)timeoutMsec;
         return GenericDriverStatus_NotImplemented;
     }
 
     virtual GenericDriverStatus writeByte(unsigned char devAddr,
                                  unsigned char data)
     {
+        (void)devAddr;
+        (void)data;
         return GenericDriverStatus_NotImplemented;
     }
 
@@ -69,12 +79,18 @@ public:
                                      unsigned int dataByteCount,
                                      unsigned int timeoutMsec = WRITE_TIMEOUT_MSEC)
     {
+        (void)devAddr;
+        (void)command;
+        (void)commandByteCount;
+        (void)data;
+        (void)dataByteCount;
+        (void)timeoutMsec;
         return GenericDriverStatus_NotImplemented;
     }
 
     virtual void setBusSpeed(bool fullSpeed)
     {
-    
+        (void)fullSpeed;
     }
     
     const char *getName()

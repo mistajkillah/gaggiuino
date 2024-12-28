@@ -96,14 +96,14 @@ private:
   void logData(std::ofstream& logFile, double elapsed_time, double actual_pressure, double actual_temperature, double pressure_output, double heater_state, double flow_rate);
   // Constants
   // Constants
-  static constexpr long MAX_NS_SLEEP = 10'000'000;      // 10ms in nanoseconds
-  static constexpr long MIN_NS_SLEEP = 1'000'000;       // 1ms in nanoseconds
-  static constexpr double CONTROL_LOOP_INTERVAL = MAX_NS_SLEEP / 1'000'000'000.0; // Convert ns to seconds
+  static constexpr long MAX_NS_SLEEP = 10000000;      // 10ms in nanoseconds
+  static constexpr long MIN_NS_SLEEP = 1000000;       // 1ms in nanoseconds
+  static constexpr double CONTROL_LOOP_INTERVAL = MAX_NS_SLEEP / 1000000000.0; // Convert ns to seconds
   static constexpr double MAX_DUTY_CYCLE = 1.0;         // Maximum duty cycle for PWM
   static constexpr double MIN_DUTY_CYCLE = 0.0;         // Minimum duty cycle for PWM
   static constexpr double TEMP_FEEDFORWARD_GAIN = 0.1;  // Feed-forward gain for temperature control
   static constexpr double PRESSURE_FEEDFORWARD_GAIN = 0.1; // Feed-forwar
-
+  static constexpr int LOG_ITERATION_COUNT_10S = static_cast<int>(10 / CONTROL_LOOP_INTERVAL);
 public:
   SystemFSM();
   inline bool step();

@@ -9,9 +9,9 @@ else
     CXX = g++
     CC = gcc
 endif
-
+#-Wconversion -Wdouble-promotion -Wformat=2 -Wnull-dereference -Wstrict-aliasing=2 -Wduplicated-cond -fsanitize=undefined,address 
 # Compiler flags for C++
-CXXFLAGS = -Wall -O0 -ggdb3 -fPIC
+CXXFLAGS = -Wall -Wextra -Werror  -O0 -ggdb3 -fPIC
 
 # Source files
 CXX_SRCS = AverageTempSensor.cpp MAX6675_TempSensor.cpp SmoothTempSensor.cpp Spi.cpp spidev_lib++.cc I2cBusLinux.cpp SpiLinux.cpp ADS1X15.cpp Arduino.cpp PSM.cpp I2cBus.cpp

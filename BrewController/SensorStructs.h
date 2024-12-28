@@ -141,23 +141,23 @@ struct SensorState
   // }
   float inline getTimeSincelastRead_pres()
   {
-    return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - lastReadTime_pres).count());
+    return static_cast<float>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - lastReadTime_pres).count());
   }
     float inline getTimeSincelastRead_temp()
   {
-    return static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - lastReadTime_temp).count());
+    return static_cast<float>(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - lastReadTime_temp).count());
   }
   void inline updatePressureReadTime() {
     lastReadTime_pres = currentReadTime_pres;
     currentReadTime_pres = std::chrono::steady_clock::now();
     timeSinceLastRead_pres_ms = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(currentReadTime_pres - lastReadTime_pres).count());
-    timeSinceLastRead_pres_s = timeSinceLastRead_pres_ms / 1000.0;
+    timeSinceLastRead_pres_s = static_cast<float>(timeSinceLastRead_pres_ms / 1000.0);
   }
   void inline updateTemperatureReadTime() {
     lastReadTime_temp = currentReadTime_temp;
     currentReadTime_temp = std::chrono::steady_clock::now();
     timeSinceLastRead_temp_ms = static_cast<uint32_t>(std::chrono::duration_cast<std::chrono::milliseconds>(currentReadTime_temp - lastReadTime_temp).count());
-    timeSinceLastRead_temp_s = timeSinceLastRead_temp_ms / 1000.0;
+    timeSinceLastRead_temp_s = static_cast<float>(timeSinceLastRead_temp_ms / 1000.0);
   }
   std::string& toString() {
     static std::string result;

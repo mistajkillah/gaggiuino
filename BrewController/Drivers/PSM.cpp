@@ -40,7 +40,7 @@ void PSM::Initialize()
   // pinMode(_controlPin, OUTPUT);
 
 
-  uint8_t interruptNum = digitalPinToInterrupt(_sensePin);
+  int interruptNum = digitalPinToInterrupt(_sensePin);
 
   if (interruptNum != NOT_AN_INTERRUPT) {
     attachInterrupt(interruptNum, onInterrupt, _mode);
@@ -50,7 +50,9 @@ void onPSMInterrupt() __attribute__((weak));
 void onPSMInterrupt() {}
 
 void PSM::onInterrupt(int gpio, int level, uint32_t tick){
-  
+  (void)gpio;
+  (void)level;
+  (void)tick;
   if ((_thePSM->_interruptMinTimeDiff > 0) && ((millis() - _thePSM->_lastMillis) < _thePSM->_interruptMinTimeDiff)) {
     //printf("interupt too quick");
     return;
@@ -170,7 +172,9 @@ void PSM::shiftDividerCounter(char value) {
 }
 
 void PSM::initTimer(unsigned int freq, int timerInstance) {
-  LOG_ERROR("NOT IMPLEMENTED INIT TIMER FUNCITON");
+  LOG_ERROR("NOT IMPLEMENTED INIT TIMER FUNCITON %d",1);
+  (void)freq;
+  (void)timerInstance;
 }
 #ifdef __cplusplus
 }

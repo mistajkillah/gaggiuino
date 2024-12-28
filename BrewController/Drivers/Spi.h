@@ -60,9 +60,15 @@ public:
 private:
 
   GenericDriverStatus sendBuffer(const unsigned char* message, size_t sendByteCount, size_t numberReadBytes = 0) {
+    (void)message;
+    (void)sendByteCount;
+    (void)numberReadBytes;
     return GenericDriverStatus_NotImplemented;
   }
   GenericDriverStatus readBuffer(unsigned char* message, size_t readByteCount, size_t writeByteCount) {
+    (void)message;
+    (void)readByteCount;
+    (void)writeByteCount;
     return GenericDriverStatus_NotImplemented;
   }
   std::recursive_mutex mutex;

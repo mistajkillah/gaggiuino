@@ -69,6 +69,7 @@ void Rpc::runServer() {
 }
 
 void Rpc::handleClient(int clientSocket) {
+  int ret=0;
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
 
@@ -82,8 +83,18 @@ void Rpc::handleClient(int clientSocket) {
     std::string request(buffer);
     std::string response = processCommand(request);
 
-    write(clientSocket, response.c_str(), response.size());
-    close(clientSocket);
+    ret=write(clientSocket, response.c_str(), response.size());
+    if(0 != ret)
+    {
+      std::cerr << "Error writting from client socket." << std::endl;
+
+    }
+    ret=close(clientSocket);
+    if(0 != ret)
+    {
+      std::cerr << "Error closing client socket." << std::endl;
+
+    }
 }
 
 bool Rpc::validateCommand(const Json::Value &command, std::string &error) {

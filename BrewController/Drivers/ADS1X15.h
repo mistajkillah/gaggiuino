@@ -25,8 +25,8 @@ class I2cBus;
 
 #define ADS1X15_OK                        0
 #define ADS1X15_INVALID_VOLTAGE           -100
-#define ADS1X15_INVALID_GAIN              0xFF
-#define ADS1X15_INVALID_MODE              0xFE
+#define ADS1X15_INVALID_GAIN             static_cast<uint8_t>(0xFF)
+#define ADS1X15_INVALID_MODE             static_cast<uint8_t>(0xFE)
 
 
 class ADS1X15

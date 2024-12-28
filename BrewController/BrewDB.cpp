@@ -40,6 +40,29 @@ void BrewDB::Initialize() {
   std::lock_guard<std::mutex> lock(dbMutex);
   InitializeDatabase();
 }
+
+
+void BrewDB::InitializeDatabase() {
+  // Create the SensorState table
+  const char* createTableSQL1 = "CREATE TABLE IF NOT EXISTS SensorState ("
+    "iteration INTEGER, datestamp TEXT, timeSinceBrewStart INTEGER, timeSinceSystemStart INTEGER, "
+    "brewSwitchState BOOLEAN, steamSwitchState BOOLEAN, hotWaterSwitchState BOOLEAN, isSteamForgottenON BOOLEAN, "
+    "scalesPresent BOOLEAN, tarePending BOOLEAN, temperature REAL, waterTemperature REAL, pressure REAL, "
+    "pressureChangeSpeed REAL, pumpFlow REAL, pumpFlowChangeSpeed REAL, waterPumped REAL, weightFlow REAL, weight REAL, "
+    "shotWeight REAL, smoothedPressure REAL, smoothedPumpFlow REAL, smoothedWeightFlow REAL, consideredFlow REAL, "
+    "pumpClicks INTEGER, waterLvl INTEGER, tofReady BOOLEAN)";
+
+  
+
+  int rc = sqlite3_exec(db, createTableSQL1, nullptr, nullptr, nullptr);
+  if (rc != SQLITE_OK)
+  {
+    std::cerr << "Error creating SensorState table: " << sqlite3_errmsg(db) << std::endl;
+  }
+
+ 
+}
+
 std::string  BrewDB::RetrieveLastSensorStateDataAsString() {
   std::lock_guard<std::mutex> lock(dbMutex);
 
@@ -173,141 +196,71 @@ std::string BrewDB::RetrieveLastSensorStateSnapshotDataAsString() {
   return result;
 }
 void BrewDB::InsertSensorStateData(const SensorState& data) {
-  std::lock_guard<std::mutex> lock(dbMutex);
+    // Wait for the previous future to finish, if it exists
+    if (previousInsertFuture.valid()) {
+        previousInsertFuture.wait();
+    }
 
-  const char* insertSQL = "INSERT INTO SensorState (iteration, datestamp, timeSinceBrewStart, timeSinceSystemStart, "
-    "brewSwitchState, steamSwitchState, hotWaterSwitchState, isSteamForgottenON, scalesPresent, tarePending, "
-    "temperature, waterTemperature, pressure, pressureChangeSpeed, pumpFlow, pumpFlowChangeSpeed, waterPumped, "
-    "weightFlow, weight, shotWeight, smoothedPressure, smoothedPumpFlow, smoothedWeightFlow, consideredFlow, "
-    "pumpClicks, waterLvl, tofReady) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    // Create a new future for the current operation
+    previousInsertFuture = std::async(std::launch::async, [this, data]() {
+        std::lock_guard<std::mutex> lock(dbMutex);
 
-  sqlite3_stmt* stmt;
-  int rc = sqlite3_prepare_v2(db, insertSQL, -1, &stmt, nullptr);
+        const char* insertSQL = "INSERT INTO SensorState (iteration, datestamp, timeSinceBrewStart, timeSinceSystemStart, "
+                                "brewSwitchState, steamSwitchState, hotWaterSwitchState, isSteamForgottenON, scalesPresent, tarePending, "
+                                "temperature, waterTemperature, pressure, pressureChangeSpeed, pumpFlow, pumpFlowChangeSpeed, waterPumped, "
+                                "weightFlow, weight, shotWeight, smoothedPressure, smoothedPumpFlow, smoothedWeightFlow, consideredFlow, "
+                                "pumpClicks, waterLvl, tofReady) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-  if (rc != SQLITE_OK)
-  {
-    std::cerr << "Error preparing insert statement for SensorState: " << sqlite3_errmsg(db) << std::endl;
-    return;
-  }
+        sqlite3_stmt* stmt;
+        int rc = sqlite3_prepare_v2(db, insertSQL, -1, &stmt, nullptr);
 
-  // Bind values to the prepared statement
-  rc = sqlite3_bind_int(stmt, 1, data.iteration);
-  rc = sqlite3_bind_text(stmt, 2, data.datestamp, -1, SQLITE_STATIC);
-  rc = sqlite3_bind_int(stmt, 3, static_cast<int>(
-    std::chrono::duration_cast<std::chrono::milliseconds>(data.timeSinceBrewStart.time_since_epoch()).count()
-    ));
-  rc = sqlite3_bind_int(stmt, 4, static_cast<int>(
-    std::chrono::duration_cast<std::chrono::milliseconds>(data.timeSinceSystemStart.time_since_epoch()).count()
-    ));
-  // rc = sqlite3_bind_int(stmt, 3, data.timeSinceBrewStart.);  
-  // rc = sqlite3_bind_int(stmt, 4, data.timeSinceSystemStart);
-  rc = sqlite3_bind_int(stmt, 5, data.brewSwitchState);
-  rc = sqlite3_bind_int(stmt, 6, data.steamSwitchState);
-  rc = sqlite3_bind_int(stmt, 7, data.hotWaterSwitchState);
-  rc = sqlite3_bind_int(stmt, 8, data.isSteamForgottenON);
-  rc = sqlite3_bind_int(stmt, 9, data.scalesPresent);
-  rc = sqlite3_bind_int(stmt, 10, data.tarePending);
-  rc = sqlite3_bind_double(stmt, 11, data.temperature);
-  rc = sqlite3_bind_double(stmt, 12, data.targetWaterTemperature);
-  rc = sqlite3_bind_double(stmt, 13, data.pressure);
-  rc = sqlite3_bind_double(stmt, 14, data.pressureChangeSpeed);
-  rc = sqlite3_bind_double(stmt, 15, data.pumpFlow);
-  rc = sqlite3_bind_double(stmt, 16, data.pumpFlowChangeSpeed);
-  rc = sqlite3_bind_double(stmt, 17, data.waterPumped);
-  rc = sqlite3_bind_double(stmt, 18, data.weightFlow);
-  rc = sqlite3_bind_double(stmt, 19, data.weight);
-  rc = sqlite3_bind_double(stmt, 20, data.shotWeight);
-  rc = sqlite3_bind_double(stmt, 21, data.smoothedPressure);
-  rc = sqlite3_bind_double(stmt, 22, data.smoothedPumpFlow);
-  rc = sqlite3_bind_double(stmt, 23, data.smoothedWeightFlow);
-  rc = sqlite3_bind_double(stmt, 24, data.consideredFlow);
-  //rc = sqlite3_bind_long(stmt, 25, data.pumpClicks);
-  rc = sqlite3_bind_int64(stmt, 25, data.pumpClicks);
-  rc = sqlite3_bind_int(stmt, 26, data.waterLvl);
-  rc = sqlite3_bind_int(stmt, 27, data.tofReady);
+        if (rc != SQLITE_OK) {
+            std::cerr << "Error preparing insert statement for SensorState: " << sqlite3_errmsg(db) << std::endl;
+            return;
+        }
 
-  rc = sqlite3_step(stmt);
-  if (rc != SQLITE_DONE)
-  {
-    std::cerr << "Error executing insert statement for SensorState: " << sqlite3_errmsg(db) << std::endl;
-  }
+        // Bind values to the prepared statement
+        sqlite3_bind_int(stmt, 1, data.iteration);
+        sqlite3_bind_text(stmt, 2, data.datestamp, -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 3, static_cast<int>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(data.timeSinceBrewStart.time_since_epoch()).count()
+        ));
+        sqlite3_bind_int(stmt, 4, static_cast<int>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(data.timeSinceSystemStart.time_since_epoch()).count()
+        ));
+        sqlite3_bind_int(stmt, 5, data.brewSwitchState);
+        sqlite3_bind_int(stmt, 6, data.steamSwitchState);
+        sqlite3_bind_int(stmt, 7, data.hotWaterSwitchState);
+        sqlite3_bind_int(stmt, 8, data.isSteamForgottenON);
+        sqlite3_bind_int(stmt, 9, data.scalesPresent);
+        sqlite3_bind_int(stmt, 10, data.tarePending);
+        sqlite3_bind_double(stmt, 11, data.temperature);
+        sqlite3_bind_double(stmt, 12, data.targetWaterTemperature);
+        sqlite3_bind_double(stmt, 13, data.pressure);
+        sqlite3_bind_double(stmt, 14, data.pressureChangeSpeed);
+        sqlite3_bind_double(stmt, 15, data.pumpFlow);
+        sqlite3_bind_double(stmt, 16, data.pumpFlowChangeSpeed);
+        sqlite3_bind_double(stmt, 17, data.waterPumped);
+        sqlite3_bind_double(stmt, 18, data.weightFlow);
+        sqlite3_bind_double(stmt, 19, data.weight);
+        sqlite3_bind_double(stmt, 20, data.shotWeight);
+        sqlite3_bind_double(stmt, 21, data.smoothedPressure);
+        sqlite3_bind_double(stmt, 22, data.smoothedPumpFlow);
+        sqlite3_bind_double(stmt, 23, data.smoothedWeightFlow);
+        sqlite3_bind_double(stmt, 24, data.consideredFlow);
+        sqlite3_bind_int64(stmt, 25, data.pumpClicks);
+        sqlite3_bind_int(stmt, 26, data.waterLvl);
+        sqlite3_bind_int(stmt, 27, data.tofReady);
 
-  sqlite3_finalize(stmt);
+        rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE) {
+            std::cerr << "Error executing insert statement for SensorState: " << sqlite3_errmsg(db) << std::endl;
+        }
+
+        sqlite3_finalize(stmt);
+    });
 }
 
-void BrewDB::InsertSensorStateSnapshotData(const SensorStateSnapshot& data) {
-  std::lock_guard<std::mutex> lock(dbMutex);
-
-  const char* insertSQL = "INSERT INTO SensorStateSnapshot (iteration, datestamp, timeSinceBrewStart, timeSinceSystemStart, "
-    "brewActive, steamActive, scalesPresent, temperature, pressure, pumpFlow, weightFlow, weight, waterLvl) "
-    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-  sqlite3_stmt* stmt;
-  int rc = sqlite3_prepare_v2(db, insertSQL, -1, &stmt, nullptr);
-
-  if (rc != SQLITE_OK)
-  {
-    std::cerr << "Error preparing insert statement for SensorStateSnapshot: " << sqlite3_errmsg(db) << std::endl;
-    return;
-  }
-
-  // Bind values to the prepared statement
-  rc = sqlite3_bind_int(stmt, 1, data.iteration);
-  rc = sqlite3_bind_text(stmt, 2, data.datestamp, -1, SQLITE_STATIC);
-  rc = sqlite3_bind_int(stmt, 3, data.timeSinceBrewStart);
-  rc = sqlite3_bind_int(stmt, 4, data.timeSinceSystemStart);
-  rc = sqlite3_bind_int(stmt, 5, data.brewActive);
-  rc = sqlite3_bind_int(stmt, 6, data.steamActive);
-  rc = sqlite3_bind_int(stmt, 7, data.scalesPresent);
-  rc = sqlite3_bind_double(stmt, 8, data.temperature);
-  rc = sqlite3_bind_double(stmt, 9, data.pressure);
-  rc = sqlite3_bind_double(stmt, 10, data.pumpFlow);
-  rc = sqlite3_bind_double(stmt, 11, data.weightFlow);
-  rc = sqlite3_bind_double(stmt, 12, data.weight);
-  rc = sqlite3_bind_int(stmt, 13, data.waterLvl);
-
-  rc = sqlite3_step(stmt);
-  if (rc != SQLITE_DONE)
-  {
-    std::cerr << "Error executing insert statement for SensorStateSnapshot: " << sqlite3_errmsg(db) << std::endl;
-  }
-
-  sqlite3_finalize(stmt);
-}
-
-void BrewDB::StartSimulator() {
-  std::thread simulator(&BrewDB::SimulatorThread, this);
-  simulator.detach();
-}
-
-void BrewDB::InitializeDatabase() {
-  // Create the SensorState table
-  const char* createTableSQL1 = "CREATE TABLE IF NOT EXISTS SensorState ("
-    "iteration INTEGER, datestamp TEXT, timeSinceBrewStart INTEGER, timeSinceSystemStart INTEGER, "
-    "brewSwitchState BOOLEAN, steamSwitchState BOOLEAN, hotWaterSwitchState BOOLEAN, isSteamForgottenON BOOLEAN, "
-    "scalesPresent BOOLEAN, tarePending BOOLEAN, temperature REAL, waterTemperature REAL, pressure REAL, "
-    "pressureChangeSpeed REAL, pumpFlow REAL, pumpFlowChangeSpeed REAL, waterPumped REAL, weightFlow REAL, weight REAL, "
-    "shotWeight REAL, smoothedPressure REAL, smoothedPumpFlow REAL, smoothedWeightFlow REAL, consideredFlow REAL, "
-    "pumpClicks INTEGER, waterLvl INTEGER, tofReady BOOLEAN)";
-
-  // Create the SensorStateSnapshot table
-  const char* createTableSQL2 = "CREATE TABLE IF NOT EXISTS SensorStateSnapshot ("
-    "iteration INTEGER, datestamp TEXT, timeSinceBrewStart INTEGER, timeSinceSystemStart INTEGER, "
-    "brewActive BOOLEAN, steamActive BOOLEAN, scalesPresent BOOLEAN, temperature REAL, pressure REAL, "
-    "pumpFlow REAL, weightFlow REAL, weight REAL, waterLvl INTEGER)";
-
-  int rc = sqlite3_exec(db, createTableSQL1, nullptr, nullptr, nullptr);
-  if (rc != SQLITE_OK)
-  {
-    std::cerr << "Error creating SensorState table: " << sqlite3_errmsg(db) << std::endl;
-  }
-
-  rc = sqlite3_exec(db, createTableSQL2, nullptr, nullptr, nullptr);
-  if (rc != SQLITE_OK)
-  {
-    std::cerr << "Error creating SensorStateSnapshot table: " << sqlite3_errmsg(db) << std::endl;
-  }
-}
 
 void BrewDB::SimulatorThread() {
   uint32_t iteration = 0;
@@ -322,7 +275,7 @@ void BrewDB::SimulatorThread() {
     // Simulate data here and populate sensorState and sensorStateSnapshot
 
     InsertSensorStateData(generateFakeSensorState(iteration));
-    InsertSensorStateSnapshotData(generateFakeSensorStateSnapshot(iteration));
+ 
     // Insert data into SensorStateSnapshot table similarly
 
     // Calculate the time elapsed during loop execution
@@ -419,39 +372,4 @@ SensorState BrewDB::generateFakeSensorState(uint32_t iteration) {
   sensorState.tofReady = (randomFloat(0.0f, 1.0f) > 0.5f);
 
   return sensorState;
-}
-
-// Function to generate fake data for SensorStateSnapshot
-SensorStateSnapshot BrewDB::generateFakeSensorStateSnapshot(uint32_t iteration) {
-  SensorStateSnapshot snapshot;
-  snapshot.iteration = iteration;
-
-  // Generate datestamp (same as SensorState)
-  std::time_t now = std::time(nullptr);
-  std::tm* tm_info = std::localtime(&now);
-  std::ostringstream datestamp;
-  datestamp << std::setw(2) << std::setfill('0') << tm_info->tm_mon + 1;
-  datestamp << std::setw(2) << std::setfill('0') << tm_info->tm_mday;
-  datestamp << std::setw(4) << std::setfill('0') << tm_info->tm_year + 1900;
-  datestamp << ":" << std::setw(2) << std::setfill('0') << tm_info->tm_hour;
-  datestamp << ":" << std::setw(2) << std::setfill('0') << tm_info->tm_min;
-  datestamp << ":" << std::setw(2) << std::setfill('0') << tm_info->tm_sec;
-  datestamp << ":" << std::setw(3) << std::setfill('0') << 0;
-  datestamp << ":" << std::setw(3) << std::setfill('0') << 0;
-  strcpy(snapshot.datestamp, datestamp.str().c_str());
-
-  // Generate other fake data
-  snapshot.timeSinceBrewStart = randomFloat(0.0f, 600000.0f);
-  snapshot.timeSinceSystemStart = randomFloat(0.0f, 600000.0f);
-  snapshot.brewActive = (randomFloat(0.0f, 1.0f) > 0.5f);
-  snapshot.steamActive = (randomFloat(0.0f, 1.0f) > 0.5f);
-  snapshot.scalesPresent = (randomFloat(0.0f, 1.0f) > 0.5f);
-  snapshot.temperature = randomFloat(0.0f, 100.0f);
-  snapshot.pressure = randomFloat(0.0f, 10.0f);
-  snapshot.pumpFlow = randomFloat(0.0f, 100.0f);
-  snapshot.weightFlow = randomFloat(0.0f, 100.0f);
-  snapshot.weight = randomFloat(0.0f, 1000.0f);
-  snapshot.waterLvl = static_cast<uint16_t>(randomFloat(0.0f, 1000.0f));
-
-  return snapshot;
 }

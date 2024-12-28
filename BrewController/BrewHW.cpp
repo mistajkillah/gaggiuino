@@ -25,7 +25,7 @@
 #include "SimpleKalmanFilter.h"
 #include "measurements.h"
 //#include "predictive_weight.h"
-#include "Profile.h"
+//#include "Profile.h"
 #include "BrewController.h"
 #include "SensorStructs.h"
 
@@ -167,25 +167,25 @@ int BrewHW::initializeHW() {
   return 0;
 }
 
-// Sample all sensors and return their readings
-SensorStateSnapshot BrewHW::getSensorStateSnapshot() {
-  //std::cout << "Sampling sensors snapshot..." << std::endl;
-  static int i = 0;
-  BrewDB& db = BrewDB::getInstance();
-  SensorStateSnapshot sensorStateSnapshot;
-  if (SIM)
-  {
+// // Sample all sensors and return their readings
+// SensorStateSnapshot BrewHW::getSensorStateSnapshot() {
+//   //std::cout << "Sampling sensors snapshot..." << std::endl;
+//   static int i = 0;
+//   BrewDB& db = BrewDB::getInstance();
+//   SensorStateSnapshot sensorStateSnapshot;
+//   if (SIM)
+//   {
 
-    return db.generateFakeSensorStateSnapshot(i);
-  }
-  else
-  {
+//     return db.generateFakeSensorStateSnapshot(i);
+//   }
+//   else
+//   {
 
-  }
-  i++;
+//   }
+//   i++;
 
-  return sensorStateSnapshot;
-}
+//   return sensorStateSnapshot;
+// }
 float BrewHW::getPumpFlow(float elapsedTimeSec, long& currentPumpClicks, float& smoothedPressure) {
   // Retrieve and reset the pump click counter
   long pumpClicks = pump.getAndResetClickCounter();

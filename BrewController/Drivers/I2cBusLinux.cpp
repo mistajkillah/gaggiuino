@@ -83,7 +83,7 @@ GenericDriverStatus I2cBusLinux::readData(unsigned char devAddr,
 
     i2cMessage.addr  = devAddr;
     i2cMessage.flags = I2C_M_RD;
-    i2cMessage.len   = byteCount;
+    i2cMessage.len   = (unsigned short)byteCount;
     i2cMessage.buf   = data;
 
     if (ioctl(fd, I2C_RDWR, &i2cIoctlData) == -1)
@@ -163,7 +163,8 @@ GenericDriverStatus I2cBusLinux::writeData(unsigned char devAddr,
 
     i2cMessage.addr = devAddr;
     i2cMessage.flags = 0;
-    i2cMessage.len = byteCount;
+    //i2cMessage.len = byteCount;
+    i2cMessage.len   = (unsigned short)byteCount;
     i2cMessage.buf = data;
        
     if (ioctl(fd, I2C_RDWR, &i2cIoctlData) == -1)
@@ -207,7 +208,7 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
     int fd = -1;
     struct i2c_msg i2cMessages[2];
     struct i2c_rdwr_ioctl_data i2cIoctlData;
-
+    (void)timeoutMsec;
     LOG_I2C(
                "busId = %d, devAddr = 0x%02x, commandByteCount = %u, dataByteCount = %u\n",
                _busId,
@@ -226,7 +227,7 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
 
     if ((command == nullptr) || (data == nullptr))
     {
-        LOG_ERROR( "null pointer\n");
+        LOG_ERROR( "null pointer %d\n",1);
 
         goto end;
     }
@@ -257,12 +258,14 @@ GenericDriverStatus I2cBusLinux::writeReadData(unsigned char devAddr,
 
     i2cMessages[0].addr  = devAddr;
     i2cMessages[0].flags = 0;
-    i2cMessages[0].len   = commandByteCount;
+    i2cMessages[0].len   = (unsigned short)commandByteCount;
+
     i2cMessages[0].buf   = command;
 
     i2cMessages[1].addr  = devAddr;
     i2cMessages[1].flags = I2C_M_RD;
-    i2cMessages[1].len   = dataByteCount;
+    //i2cMessages[1].len   = dataByteCount;
+    i2cMessages[1].len   = (unsigned short)dataByteCount;
     i2cMessages[1].buf   = data;
 
     if (ioctl(fd, I2C_RDWR, &i2cIoctlData) == -1)

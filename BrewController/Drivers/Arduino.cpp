@@ -8,8 +8,9 @@
 
 void attachInterrupt(int inputPin,void callback(int gpio, int level, uint32_t tick), int c)
 {
+  (void) c;
   gpioSetAlertFunc(inputPin, callback);
-  LOG_ERROR("interupt attached to %d\n", inputPin);
+  //LOG_ERROR("interupt attached to %d\n", inputPin);
 }
 int digitalPinToInterrupt(int pin)
 {

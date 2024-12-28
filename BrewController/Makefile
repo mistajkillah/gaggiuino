@@ -13,7 +13,7 @@ else
 endif
 
 # Compiler and linker configurations
-CXXFLAGS = -I./Drivers -I./Drivers/pigpio/include -Wall -ggdb3 -O0 -I/usr/include/jsoncpp
+CXXFLAGS = -I./Drivers -I./Drivers/pigpio/include -Wall -Wextra   -Wnull-dereference -Wstrict-aliasing=2 -Wduplicated-cond  -ggdb3 -O0 -I/usr/include/jsoncpp
 LDFLAGS = -L./Drivers -L./Drivers/pigpio/lib -lGenericDrivers -lpigpio -lrt -lsqlite3 -lpthread -ljsoncpp
 
 # Output binary

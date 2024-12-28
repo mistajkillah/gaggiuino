@@ -16,7 +16,8 @@ int main(int argc, char *argv[])
     //Rpc rpc(9050);
     //rpc.start();
     
-
+    (void)argc;
+    (void)argv;
     SystemFSM systemFsm;
     systemFsm.run();
 

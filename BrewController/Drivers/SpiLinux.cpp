@@ -36,10 +36,10 @@ GenericDriverStatus SpiDeviceLinux::sendReceiveBuffer(const unsigned char* sendM
   }
   if (mySPI->begin())
   {
-    size_t status=0;
-    if(numberReadBytes != (status=mySPI->xfer(sendMessage, numberWriteBytes, responseMessage, numberReadBytes)))
+    int status=0;
+    if((int)numberReadBytes != (status=mySPI->xfer(sendMessage, numberWriteBytes, responseMessage, numberReadBytes)))
     {
-      printf("ERROR:spi xfer status = 0x%lx\n", status);      
+      printf("ERROR:spi xfer status = 0x%x\n", status);      
       return GenericDriverStatus_SpiError;
     }
     
