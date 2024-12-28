@@ -18,13 +18,12 @@ enum class SystemState
 {
   Initialize,
   SystemIdeling,
-  BrewSetup,
   Brewing,
   Complete,
   Exit
 };
 
-enum class BrewState { FillBoiler, WaitingForIdle, Idle, Brew, Complete };
+enum class BrewState { FillBoiler, WaitingForIdle, Brew, Complete };
 constexpr int TOTAL_ITERATIONS = 10;
 
 struct Iteration

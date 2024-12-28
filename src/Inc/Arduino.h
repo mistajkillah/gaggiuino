@@ -1,8 +1,8 @@
 #ifndef ARDUINO_H
 #define ARDUINO_H
 
-#define FALLING 1
-#define RISING 0
+//#define FALLING 1
+//#define RISING 0
 #define LOW 0
 #define HIGH 1
 #define INPUT 1

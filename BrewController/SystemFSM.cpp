@@ -88,7 +88,7 @@ SystemState SystemFSM::handleSystemIdleing() {
   updateSensorStateAsync();
   //hw.updateSensorStateAsync(sensorState);
   //updatePressue();
-  BLOG_ERROR("%s\n", sensorState.toString().c_str());
+  // BLOG_ERROR("%s\n", sensorState.toString().c_str());
   if (false == sensorState.brewSwitchState)
   {
     
@@ -99,6 +99,7 @@ SystemState SystemFSM::handleSystemIdleing() {
   else
   {
     currentState = SystemState::Brewing;
+      BLOG_ERROR("%s\n", sensorState.toString().c_str());
   }
   return currentState;
 }
@@ -155,9 +156,9 @@ inline void SystemFSM::handleBrewing() {
     break;
   case BrewState::WaitingForIdle:
   if (hw.isBoilerFull(sensorState)) {
-        BLOG_DEBUG("Boiler filled. Transitioning to Idle state.\n");
+        BLOG_ERROR("Boiler filled. Transitioning to Idle state.\n");
         hw.stopFillBoiler();
-        brewingState = BrewState::Idle;
+        brewingState = BrewState::Brew;
     } else {
         BLOG_DEBUG("Waiting for boiler to be filled.\n");
     }
@@ -174,16 +175,16 @@ inline void SystemFSM::handleBrewing() {
     brewingState = BrewState::Brew;
     break;
   case BrewState::Complete:
-    BLOG_DEBUG("State: Complete - Brewing process is complete.\n");
+    BLOG_ERROR("State: Complete - Brewing process is complete.\n");
     currentState = SystemState::Complete; // Transition to System FSM's Complete state
     brewFSMCount = 0;                     // Reset counter    
     break;
 
-  default:
-    BLOG_ERROR("Unknown brewing state!\n");
-    assert( 0 && "unknown state");
-    brewingState = BrewState::FillBoiler; // Reset to safe state
-    break;
+  // default:
+  //   BLOG_ERROR("Unknown brewing state!\n");
+  //   assert( 0 && "unknown state");
+  //   brewingState = BrewState::FillBoiler; // Reset to safe state
+  //   break;
   }
 }
 
@@ -226,10 +227,10 @@ inline bool SystemFSM::step() {
   case SystemState::Exit:
     BLOG_ERROR("Exiting system...\n");
     return false;
-  default:
-    BLOG_ERROR("Unknown state! Exiting for safety.\n");
-    currentState = SystemState::Exit;
-    break;
+  // default:
+  //   BLOG_ERROR("Unknown state! Exiting for safety.\n");
+  //   currentState = SystemState::Exit;
+  //   break;
   }
   return true;
 }

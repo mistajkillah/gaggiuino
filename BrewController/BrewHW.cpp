@@ -44,6 +44,50 @@
 #include "BrewHW.h"
 //extern  BrewConfig runningCfg;
 
+  // Array to map physical pin to BCM GPIO pin
+  int rpiPinToBCM[41] = {
+      -1,  // Index 0 (no pin 0, placeholder for 1-based indexing)
+      -1,  // Pin 1: 3.3V
+      -1,  // Pin 2: 5V
+       2,  // Pin 3: GPIO2 (SDA1)
+      -1,  // Pin 4: 5V
+       3,  // Pin 5: GPIO3 (SCL1)
+      -1,  // Pin 6: Ground
+       4,  // Pin 7: GPIO4
+      14,  // Pin 8: GPIO14 (TXD)
+      -1,  // Pin 9: Ground
+      15,  // Pin 10: GPIO15 (RXD)
+      17,  // Pin 11: GPIO17
+      18,  // Pin 12: GPIO18
+      27,  // Pin 13: GPIO27
+      -1,  // Pin 14: Ground
+      22,  // Pin 15: GPIO22
+      23,  // Pin 16: GPIO23
+      -1,  // Pin 17: 3.3V
+      24,  // Pin 18: GPIO24
+      10,  // Pin 19: GPIO10 (MOSI)
+      -1,  // Pin 20: Ground
+       9,  // Pin 21: GPIO9 (MISO)
+      25,  // Pin 22: GPIO25
+      11,  // Pin 23: GPIO11 (SCLK)
+       8,  // Pin 24: GPIO8 (CE0)
+      -1,  // Pin 25: Ground
+       7,  // Pin 26: GPIO7 (CE1)
+      -1,  // Pin 27: ID_SD
+      -1,  // Pin 28: ID_SC
+       5,  // Pin 29: GPIO5
+      -1,  // Pin 30: Ground
+       6,  // Pin 31: GPIO6
+      12,  // Pin 32: GPIO12
+      13,  // Pin 33: GPIO13
+      -1,  // Pin 34: Ground
+      19,  // Pin 35: GPIO19
+      16,  // Pin 36: GPIO16
+      26,  // Pin 37: GPIO26
+      20,  // Pin 38: GPIO20
+      -1,  // Pin 39: Ground
+      21   // Pin 40: GPIO21
+  };
 // Static method to access the singleton instance
 BrewHW& BrewHW::getInstance() {
   static BrewHW instance;
@@ -61,7 +105,13 @@ BrewHW::BrewHW() :
   tempSensor(&spiDevice, "BoilerTemp"),
   i2c(1, "i2c1"),
   adc(&i2c, "WaterPressure", 0x48),
-  pump(pump_ZC_SENSE_PIN, pumpCTRL_PIN, POWER_LINE_FREQ, PUMP_FLOW_AT_ZERO) {
+  pumpCTRL_PIN(rpiPinToBCM[37]),
+  pump_ZC_SENSE_PIN(rpiPinToBCM[36]),
+  steamSENSE_PIN(rpiPinToBCM[35]),
+  brewSENSE_PIN(rpiPinToBCM[33]),
+  valveRelayCTRL_PIN(rpiPinToBCM[31]),
+  boilerRelayCTRL_PIN(rpiPinToBCM[29]),
+  pump(rpiPinToBCM[36], rpiPinToBCM[37], POWER_LINE_FREQ, PUMP_FLOW_AT_ZERO) {
 
 }
 
@@ -100,7 +150,7 @@ int BrewHW::initializeHW() {
 
 
 
-  
+
   // Set pull-down resistor on the input pin
   //gpioSetPullUpDown(zc_Pin, PI_PUD_DOWN);
 
@@ -159,7 +209,7 @@ bool BrewHW::isBoilerFull(SensorState& sensorState) {
 
   if (elapsedTime >= BOILER_FILL_TIMEOUT)
   {
-    BLOG_ERROR("Boiler is fileld %u ms", elapsedTime);
+    BLOG_ERROR("Boiler is fileld %u ms\n", elapsedTime);
     return true;
   }
   //return elapsedTime >= BOILER_FILL_TIMEOUT || boilerFull;
@@ -218,6 +268,7 @@ void BrewHW::fillBoiler() {
 }
 
 void BrewHW::stopFillBoiler() {
+  BLOG_ERROR("Turning off pump and valve\n");
   closeValve();
   pump.setPumpOff();
 }
@@ -255,17 +306,14 @@ float BrewHW::getTemperature() {
 }
 
 float BrewHW::getPressure() {
-  //int16_t val_0 = adc.readADC(0);  
-  //int16_t val_1 = adc.readADC(1);  
-  //int16_t val_2 = adc.readADC(2);  
-  //int16_t val_3 = adc.readADC(3);  
 
-  //float f = adc.toVoltage(1);  // voltage factor
-  //printf("Analog0: 0x%X  %f\n", val_0, adc.toVoltage(val_0));
-  //printf("Analog1: 0x%X  %f\n", val_1, adc.toVoltage(val_1));
-  //printf("Analog2: 0x%X  %f\n", val_2, adc.toVoltage(val_2));
-  //printf("Analog3: 0x%X  %f\n", val_3, adc.toVoltage(val_3));
+  float max_pressure_bar = 13.79;  // Maximum pressure in bar
+  float min_voltage = 0.5;         // Sensor output at 0 pressure (in volts)
+  float max_voltage = 4.5;         // Sensor output at max pressure (in volts)
+  int16_t val_0 = adc.getValue();
+  //printf("Analog%d: 0x%X  %f\n",i, val_0, adc.toVoltage(val_0) );
+// Calculate pressure in bar
+  float pressure = ((adc.toVoltage(val_0) - min_voltage) / (max_voltage - min_voltage)) * max_pressure_bar;
 
-   // previousPressure = currentPressure;
-  return (adc.getValue() - 2666) / 1777.8f; // 16bit
+
 }

@@ -13,27 +13,34 @@ PSM::PSM(unsigned char sensePin, unsigned char controlPin, unsigned int range, i
   _thePSM = this;
 
   
-  PSM::_sensePin = sensePin;
-  PSM::_mode=mode;
+  _sensePin = sensePin;
+  _mode=mode;
   
-  PSM::_controlPin = controlPin;
+  _controlPin = controlPin;
 
-  PSM::_divider = divider > 0 ? divider : 1;
+  _divider = divider > 0 ? divider : 1;
 
   
-  PSM::_range = range;
-  PSM::_interruptMinTimeDiff = interruptMinTimeDiff;
+  _range = range;
+  _interruptMinTimeDiff = interruptMinTimeDiff;
 }
 
 void PSM::Initialize()
 {   
-  pinSetPullUpDown(_sensePin, INPUT_PULLUP);
+  printf("Pump Intializing\n");
   
+  gpioSetMode(_sensePin, PI_INPUT);
+  gpioSetMode(_controlPin, PI_INPUT);
+  gpioSetPullUpDown(_sensePin, PI_PUD_UP);
+  gpioSetPullUpDown(_controlPin, PI_PUD_DOWN);
+  gpioWrite(_controlPin, PI_LOW);
 
-  pinMode(_controlPin, OUTPUT);
+  // pinSetPullUpDown(_sensePin, INPUT_PULLUP);
+
+  // pinMode(_controlPin, OUTPUT);
 
 
-  uint8_t interruptNum = digitalPinToInterrupt(PSM::_sensePin);
+  uint8_t interruptNum = digitalPinToInterrupt(_sensePin);
 
   if (interruptNum != NOT_AN_INTERRUPT) {
     attachInterrupt(interruptNum, onInterrupt, _mode);
@@ -44,8 +51,8 @@ void onPSMInterrupt() {}
 
 void PSM::onInterrupt(int gpio, int level, uint32_t tick){
   
-  if (_thePSM->_interruptMinTimeDiff > 0 && millis() - _thePSM->_lastMillis < _thePSM->_interruptMinTimeDiff) {
-    printf("interupt too quick");
+  if ((_thePSM->_interruptMinTimeDiff > 0) && ((millis() - _thePSM->_lastMillis) < _thePSM->_interruptMinTimeDiff)) {
+    //printf("interupt too quick");
     return;
   }
   _thePSM->_lastMillis = millis();
@@ -61,72 +68,74 @@ void PSM::onInterrupt(int gpio, int level, uint32_t tick){
 }
 
 void PSM::set(unsigned int value) {
-  if (value < PSM::_range) {
-    PSM::_value = value;
+  if (value < _range) {
+    _value = value;
   } else {
-    PSM::_value = PSM::_range;
+    _value = _range;
   }
 }
 
 long PSM::getCounter() {
-  return PSM::_counter;
+  return _counter;
 }
 
 void PSM::resetCounter() {
-  PSM::_counter = 0;
+  _counter = 0;
 }
 
 void PSM::stopAfter(long counter) {
-  PSM::_stopAfter = counter;
+  _stopAfter = counter;
 }
 
 void PSM::calculateSkip() {
-  PSM::_lastMillis = millis();
-  printf("calcualting skip\n");
-  PSM::_a += PSM::_value;
+  _lastMillis = millis();
+  //printf("calcualting skip\n");
+  _a += _value;
 
-  if (PSM::_a >= PSM::_range) {
-    PSM::_a -= PSM::_range;
-    PSM::_skip = false;
+  if (_a >= _range) {
+    _a -= _range;
+    _skip = false;
   } else {
-    PSM::_skip = true;
+    _skip = true;
   }
 
-  if (PSM::_a > PSM::_range) {
-    PSM::_a = 0;
-    PSM::_skip = false;
+  if (_a > _range) {
+    _a = 0;
+    _skip = false;
   }
 
-  if (!PSM::_skip) {
-    PSM::_counter++;
+  if (!_skip) {
+    _counter++;
   }
 
-  if (!PSM::_skip
-    && PSM::_stopAfter > 0
-    && PSM::_counter > PSM::_stopAfter) {
-    PSM::_skip = true;
+  if (!_skip
+    && _stopAfter > 0
+    && _counter > _stopAfter) {
+    _skip = true;
   }
 
   updateControl();
 }
 
 void PSM::updateControl() {
-  if (PSM::_skip) {
-    digitalWrite(PSM::_controlPin, LOW);
+  if (_skip) {
+    digitalWrite(_controlPin, PI_LOW);
+//    printf("pump low\n") ; 
   } else {
-    digitalWrite(PSM::_controlPin, HIGH);
+    digitalWrite(_controlPin, PI_HIGH);
+  //  printf("pump high\n");
   }
 }
 
 unsigned int PSM::cps() {
-  unsigned int range = PSM::_range;
-  unsigned int value = PSM::_value;
-  unsigned char divider = PSM::_divider;
+  unsigned int range = _range;
+  unsigned int value = _value;
+  unsigned char divider = _divider;
 
-  PSM::_range = 0xFFFF;
-  PSM::_value = 1;
-  PSM::_a = 0;
-  PSM::_divider = 1;
+  _range = 0xFFFF;
+  _value = 1;
+  _a = 0;
+  _divider = 1;
 
   unsigned long stopAt = millis() + 1000;
 
@@ -134,30 +143,30 @@ unsigned int PSM::cps() {
     delay(0);
   }
 
-  unsigned int result = PSM::_a;
+  unsigned int result = _a;
 
-  PSM::_range = range;
-  PSM::_value = value;
-  PSM::_a = 0;
-  PSM::_divider = divider;
+  _range = range;
+  _value = value;
+  _a = 0;
+  _divider = divider;
 
   return result;
 }
 
 unsigned long PSM::getLastMillis() {
-  return PSM::_lastMillis;
+  return _lastMillis;
 }
 
 unsigned char PSM::getDivider(void) {
-  return PSM::_divider;
+  return _divider;
 }
 
 void PSM::setDivider(unsigned char divider) {
-  PSM::_divider = divider > 0 ? divider : 1;
+  _divider = divider > 0 ? divider : 1;
 }
 
 void PSM::shiftDividerCounter(char value) {
-  PSM::_dividerCounter += value;
+  _dividerCounter += value;
 }
 
 void PSM::initTimer(unsigned int freq, int timerInstance) {
