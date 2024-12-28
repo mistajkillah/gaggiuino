@@ -35,9 +35,10 @@ public:
   void resetHW();
   void cleanupHW();
   void fillBoiler();
-
+  void SetPump(double pressure_output);
+  void Reset();
   void stopFillBoiler();
-
+  void SetBoiler(bool state);
   float getTemperature();
   float getPressure();
   int brewState(void);
@@ -54,7 +55,8 @@ private:
 
   // Static method for input callback
   static void inputCallback(int gpio, int level, uint32_t tick);
-  void setBoilerOn(void);
+
+void setBoilerOn(void);
   void setBoilerOff(void);
   void setSteamValveRelayOn(void);
   void setSteamValveRelayOff(void);

@@ -1,0 +1,76 @@
+{
+    "BrewProfile": [
+      {
+        "name": "Profile1",
+        "points": [
+          {
+            "time": 0.0,
+            "duration": 5.0,
+            "pressure": 0.0,
+            "temperature": 25.0,
+            "pressurePID": { "Kp": 0.8, "Ki": 0.05, "Kd": 0.02 },
+            "temperaturePID": { "Kp": 0.7, "Ki": 0.04, "Kd": 0.02 }
+          },
+          {
+            "time": 10.0,
+            "duration": 10.0,
+            "pressure": 9.0,
+            "temperature": 93.0,
+            "pressurePID": { "Kp": 1.5, "Ki": 0.1, "Kd": 0.1 },
+            "temperaturePID": { "Kp": 1.2, "Ki": 0.1, "Kd": 0.08 }
+          },
+          {
+            "time": 25.0,
+            "duration": 5.0,
+            "pressure": 0.0,
+            "temperature": 25.0,
+            "pressurePID": { "Kp": 0.8, "Ki": 0.05, "Kd": 0.02 },
+            "temperaturePID": { "Kp": 0.7, "Ki": 0.04, "Kd": 0.02 }
+          }
+        ]
+      },
+      {
+        "name": "Profile2",
+        "points": [
+          {
+            "time": 0.0,
+            "duration": 7.0,
+            "pressure": 1.0,
+            "temperature": 20.0,
+            "pressurePID": { "Kp": 0.9, "Ki": 0.05, "Kd": 0.03 },
+            "temperaturePID": { "Kp": 0.8, "Ki": 0.05, "Kd": 0.03 }
+          },
+          {
+            "time": 10.0,
+            "duration": 8.0,
+            "pressure": 8.0,
+            "temperature": 92.0,
+            "pressurePID": { "Kp": 1.6, "Ki": 0.12, "Kd": 0.1 },
+            "temperaturePID": { "Kp": 1.3, "Ki": 0.12, "Kd": 0.1 }
+          }
+        ]
+      },
+      {
+        "name": "Test1",
+        "points": [
+          {
+            "time": 0.0,
+            "duration": 25.0,
+            "pressure": 9.0,
+            "temperature": 95.0,
+            "pressurePID": { "Kp": 1.4, "Ki": 0.08, "Kd": 0.05 },
+            "temperaturePID": { "Kp": 1.2, "Ki": 0.1, "Kd": 0.08 }
+          },
+          {
+            "time": 25.0,
+            "duration": 0.0,
+            "pressure": 0.0,
+            "temperature": 0.0,
+            "pressurePID": { "Kp": 0.5, "Ki": 0.02, "Kd": 0.01 },
+            "temperaturePID": { "Kp": 0.4, "Ki": 0.02, "Kd": 0.01 }
+          }
+        ]
+      }
+    ]
+  }
+  

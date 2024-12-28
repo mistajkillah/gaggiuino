@@ -32,7 +32,7 @@
 //     }
 
 // typedef std::chrono::high_resolution_clock HiresClock;
-// typedef std::chrono::system_clock Clock;
+// typedef std::chrono::steady_clock Clock;
 // const int TOTAL_ITERATIONS = 6000;
 // const double NANO_TO_MSEC = 1000000.0;
 

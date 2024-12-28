@@ -1,31 +1,26 @@
 #include <iostream>
-#include <string>
-#include <thread>
-#include <cstring>
+#include <fstream>
 #include <sstream>
-#include <sqlite3.h>
-#include <string>
 #include <thread>
 #include <chrono>
-#include <ctime>
-#include <iomanip>
-#include <mutex>
-#include <random>
-#include <deque>
-#include <assert.h>
+#include <algorithm>
+#include <map>
+#include <future>
+#include <json/json.h>
+#include <sqlite3.h>
+
 #include "BrewController.h"
 #include "SensorStructs.h"
 #include "SimpleKalmanFilter.h"
 #include "measurements.h"
-
 #include "SystemFSM.h"
 #include "BrewHW.h"
 #include "BrewDB.h"
-#include <future>
+
 
 
 // Constructor
-SystemFSM::SystemFSM() : hw(BrewHW::getInstance()){}
+SystemFSM::SystemFSM() : hw(BrewHW::getInstance()), logFile("control_log.csv") {}
 
 void SystemFSM::handleInitialize() {
   BLOG_INFO("System is initializing...\n");
@@ -33,54 +28,73 @@ void SystemFSM::handleInitialize() {
   BrewDB& brewDB = BrewDB::getInstance();
   brewDB.Initialize();
   hw.initializeHW();
+  brewProfiles = loadBrewProfiles(brewProfilesFileName);
   sensorState.setTimeSinceSystemStart();
-  currentState = SystemState::SystemIdeling;
+
+  // Validate the selected profile
+  if (brewProfiles.find(selectBrewProfile) == brewProfiles.end())
+  {
+    BLOG_ERROR("Cannot find %s profile\n", selectBrewProfile.c_str());
+    currentState = SystemState::Exit;
+  }
+  else
+  {
+    selectedProfile = brewProfiles[selectBrewProfile];
+    currentState = SystemState::SystemIdeling;
+  }
+
 }
 
 void SystemFSM::updateSensorStateAsync() {
-    static int i = 0;
-    std::future<float> pressureFuture;
-    std::future<float> temperatureFuture;
+  static int i = 0;
+  std::future<float> pressureFuture;
+  std::future<float> temperatureFuture;
 
-    // Check and start async tasks based on conditions
-    if (sensorState.getTimeSincelastRead_pres() > GET_PRESSURE_READ_EVERY) {
-        // Use a lambda to capture 'hw' explicitly
-        pressureFuture = std::async(std::launch::async, [this]() {
-            return hw.getPressure();
-        });
+  // Check and start async tasks based on conditions
+  if (sensorState.getTimeSincelastRead_pres() > GET_PRESSURE_READ_EVERY)
+  {
+    // Use a lambda to capture 'hw' explicitly
+    pressureFuture = std::async(std::launch::async, [this]() {
+      return hw.getPressure();
+      });
+  }
+  if (sensorState.getTimeSincelastRead_temp() > GET_KTYPE_READ_EVERY)
+  {
+    // Use a lambda to capture 'hw' explicitly
+    temperatureFuture = std::async(std::launch::async, [this]() {
+      return hw.getTemperature();
+      });
+  }
+
+  // Update switch states directly
+  sensorState.steamSwitchState = hw.steamState();
+  sensorState.brewSwitchState = hw.brewState();
+
+  // Increment iteration
+  sensorState.iteration = i;
+
+  // Wait for temperature and update state
+  if (sensorState.getTimeSincelastRead_temp() > GET_KTYPE_READ_EVERY)
+  {
+    sensorState.updateTemperatureReadTime();
+    if (temperatureFuture.valid())
+    {
+      sensorState.temperature = temperatureFuture.get();
     }
-    if (sensorState.getTimeSincelastRead_temp() > GET_KTYPE_READ_EVERY) {
-        // Use a lambda to capture 'hw' explicitly
-        temperatureFuture = std::async(std::launch::async, [this]() {
-            return hw.getTemperature();
-        });
+  }
+
+  // Wait for pressure and update state
+  if (sensorState.getTimeSincelastRead_pres() > GET_PRESSURE_READ_EVERY)
+  {
+    sensorState.updatePressureReadTime();
+    if (pressureFuture.valid())
+    {
+      sensorState.pressure = pressureFuture.get();
     }
+    updatePressue(); // Additional processing for pressure
+  }
 
-    // Update switch states directly
-    sensorState.steamSwitchState = hw.steamState();
-    sensorState.brewSwitchState = hw.brewState();
-
-    // Increment iteration
-    sensorState.iteration = i;
-
-    // Wait for temperature and update state
-    if (sensorState.getTimeSincelastRead_temp() > GET_KTYPE_READ_EVERY) {
-        sensorState.updateTemperatureReadTime();
-        if (temperatureFuture.valid()) {
-            sensorState.temperature = temperatureFuture.get();
-        }
-    }
-
-    // Wait for pressure and update state
-    if (sensorState.getTimeSincelastRead_pres() > GET_PRESSURE_READ_EVERY) {
-        sensorState.updatePressureReadTime();
-        if (pressureFuture.valid()) {
-            sensorState.pressure = pressureFuture.get();
-        }
-        updatePressue(); // Additional processing for pressure
-    }
-
-    i++;
+  i++;
 }
 
 SystemState SystemFSM::handleSystemIdleing() {
@@ -91,45 +105,46 @@ SystemState SystemFSM::handleSystemIdleing() {
   // BLOG_ERROR("%s\n", sensorState.toString().c_str());
   if (false == sensorState.brewSwitchState)
   {
-    
+
     BLOG_ERROR("BREW switched off...\n");
-    currentState = SystemState::SystemIdeling; 
-  
+    currentState = SystemState::SystemIdeling;
+
   }
   else
   {
     currentState = SystemState::Brewing;
-      BLOG_ERROR("%s\n", sensorState.toString().c_str());
+    BLOG_ERROR("%s\n", sensorState.toString().c_str());
   }
   return currentState;
 }
 
 
 
-void SystemFSM::updatePressue(void) {  
+void SystemFSM::updatePressue(void) {
   //uint32_t elapsedTime = millis() - pressureTimer;
-  if (sensorState.timeSinceLastRead_pres_ms > GET_PRESSURE_READ_EVERY) {
-    
+  if (sensorState.timeSinceLastRead_pres_ms > GET_PRESSURE_READ_EVERY)
+  {
+
 
     sensorState.previousSmoothedPressure = sensorState.smoothedPressure;
     sensorState.smoothedPressure = smoothPressure.updateEstimate(sensorState.pressure);
     sensorState.pressureChangeSpeed = (sensorState.smoothedPressure - sensorState.previousSmoothedPressure) / sensorState.timeSinceLastRead_pres_ms;
-    
+
   }
 }
 
 void SystemFSM::updateFlow(void) {
-    // Calculate pump flow and update the state
-    sensorState.pumpFlow = hw.getPumpFlow(sensorState.timeSinceLastRead_pres_s, sensorState.pumpClicks, sensorState.smoothedPressure);
+  // Calculate pump flow and update the state
+  sensorState.pumpFlow = hw.getPumpFlow(sensorState.timeSinceLastRead_pres_s, sensorState.pumpClicks, sensorState.smoothedPressure);
 
-    // Save the previous smoothed pump flow
-    sensorState.previousSmoothedPumpFlow = sensorState.smoothedPumpFlow;
+  // Save the previous smoothed pump flow
+  sensorState.previousSmoothedPumpFlow = sensorState.smoothedPumpFlow;
 
-    // Apply smoothing to the pump flow
-    sensorState.smoothedPumpFlow = smoothPumpFlow.updateEstimate(sensorState.pumpFlow);
+  // Apply smoothing to the pump flow
+  sensorState.smoothedPumpFlow = smoothPumpFlow.updateEstimate(sensorState.pumpFlow);
 
-    // Calculate the rate of change of the pump flow
-    sensorState.pumpFlowChangeSpeed = (sensorState.smoothedPumpFlow - sensorState.previousSmoothedPumpFlow) / sensorState.timeSinceLastRead_pres_s;
+  // Calculate the rate of change of the pump flow
+  sensorState.pumpFlowChangeSpeed = (sensorState.smoothedPumpFlow - sensorState.previousSmoothedPumpFlow) / sensorState.timeSinceLastRead_pres_s;
 }
 
 inline void SystemFSM::handleBrewing() {
@@ -137,9 +152,9 @@ inline void SystemFSM::handleBrewing() {
   static BrewState brewingState = BrewState::FillBoiler;
 
   BLOG_DEBUG("Handling Brewing FSM...\n");
-  if(SystemState::Brewing != handleSystemIdleing())
+  if (SystemState::Brewing != handleSystemIdleing())
   {
-    brewingState=BrewState::FillBoiler;
+    brewingState = BrewState::FillBoiler;
     return;
   }
   brewFSMCount++;
@@ -150,61 +165,47 @@ inline void SystemFSM::handleBrewing() {
     BLOG_ERROR("State: FillBoiler - Filling the boiler...\n");
     hw.fillBoiler();
     sensorState.setTimeSinceBrewStart();
-    brewingState = BrewState::WaitingForIdle;
-      
-   
+    brewingState = BrewState::WaitingForBoilerFull;
+
+
     break;
-  case BrewState::WaitingForIdle:
-  if (hw.isBoilerFull(sensorState)) {
-        BLOG_ERROR("Boiler filled. Transitioning to Idle state.\n");
-        hw.stopFillBoiler();
-        brewingState = BrewState::Brew;
-    } else {
-        BLOG_DEBUG("Waiting for boiler to be filled.\n");
+  case BrewState::WaitingForBoilerFull:
+    if (hw.isBoilerFull(sensorState))
+    {
+      BLOG_ERROR("Boiler filled. Transitioning to Brew state.\n");
+      hw.stopFillBoiler();
+      sensorState.setTimeSinceBoilerFull();
+      brewingState = BrewState::Brew;
+    }
+    else
+    {
+      BLOG_DEBUG("Waiting for boiler to be filled.\n");
     }
     break;
   case BrewState::Brew:
     BLOG_DEBUG("State: Brew - Brewing in progress...\n");
-    if (brewFSMCount > TOTAL_ITERATIONS)
-    {
-      BLOG_DEBUG("Brewing complete. Transitioning to Complete state.\n");
-      brewingState = BrewState::Complete;
-    }
-    std::this_thread::sleep_for(std::chrono::seconds(1)); // Simulate idle delay
-      BLOG_DEBUG("Brewing complete. Transitioning to Complete state.\n");
-    brewingState = BrewState::Brew;
+    brewingState = DoBrew();
+    hw.SetBoiler(sensorState.heater_state);
+    hw.SetPump(sensorState.pressure_output);
     break;
   case BrewState::Complete:
     BLOG_ERROR("State: Complete - Brewing process is complete.\n");
-    currentState = SystemState::Complete; // Transition to System FSM's Complete state
+    hw.Reset();
+    currentState = SystemState::SystemIdeling; // Transition to System FSM's Complete state
     brewFSMCount = 0;                     // Reset counter    
     break;
-
-  // default:
-  //   BLOG_ERROR("Unknown brewing state!\n");
-  //   assert( 0 && "unknown state");
-  //   brewingState = BrewState::FillBoiler; // Reset to safe state
-  //   break;
   }
 }
 
 
-void SystemFSM::handleComplete() {
-  BLOG_DEBUG("Brewing process complete. Enjoy your beverage!\n");
-  BLOG_ERROR("Type 'exit' to stop or 'restart' to initialize again: \n");
-  std::string input;
-  std::cin >> input;
-  if (input == "exit")
+void SystemFSM::handleBrewingComplete() {
+  BLOG_ERROR("Brewing process complete. Enjoy your beverage!\n");
+  if (false == sensorState.brewSwitchState)
   {
-    currentState = SystemState::Exit;
-  }
-  else if (input == "restart")
-  {
-    currentState = SystemState::Initialize;
-  }
-  else
-  {
-    BLOG_ERROR("Invalid input. Staying in Complete state.\n");
+
+    BLOG_ERROR("BREW switched off...\n");
+    currentState = SystemState::BrewingComplete;
+
   }
 }
 
@@ -221,16 +222,20 @@ inline bool SystemFSM::step() {
   case SystemState::Brewing:
     handleBrewing();
     break;
-  case SystemState::Complete:
-    handleComplete();
+  case SystemState::BrewingComplete:
+    handleBrewingComplete();
     break;
   case SystemState::Exit:
     BLOG_ERROR("Exiting system...\n");
+    if (logFile.is_open())
+    {
+      logFile.close();
+    }
     return false;
-  // default:
-  //   BLOG_ERROR("Unknown state! Exiting for safety.\n");
-  //   currentState = SystemState::Exit;
-  //   break;
+    // default:
+    //   BLOG_ERROR("Unknown state! Exiting for safety.\n");
+    //   currentState = SystemState::Exit;
+    //   break;
   }
   return true;
 }
@@ -243,7 +248,7 @@ void SystemFSM::run() {
   while (currentState != SystemState::Exit)
   {
     //std::memset(&currentIteration, 0, sizeof(Iteration));
-    currentIteration={};
+    currentIteration = {};
     currentIteration.index = currIndex;
     currentIteration.start = std::chrono::high_resolution_clock::now();
 
@@ -279,13 +284,6 @@ void SystemFSM::run() {
   }
 }
 
-// inline double SystemFSM::calculateTotalTime(
-//     const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
-//     const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart
-// ) {
-//     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(currStart - prevStart);
-//     return duration.count() / 1e6; // Convert nanoseconds to milliseconds
-// }
 
 inline double SystemFSM::calculateTotalTime(
   const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
@@ -297,13 +295,11 @@ inline double SystemFSM::calculateTotalTime(
 
 
 inline double SystemFSM::executeSleep(const std::chrono::duration<double, std::nano>& elapsed) {
-  constexpr long maxNsSleep = 10'000'00000; // 10ms in nanoseconds
-  constexpr long minNsSleep = 1'000'000;  // 1ms in nanoseconds
 
   // Calculate remaining sleep time
-  double sleepTime = maxNsSleep - elapsed.count();
+  double sleepTime = MAX_NS_SLEEP - elapsed.count();
 
-  if (sleepTime > 0 && sleepTime >= minNsSleep)
+  if (sleepTime > 0 && sleepTime >= MIN_NS_SLEEP)
   {
     std::this_thread::sleep_for(std::chrono::nanoseconds(static_cast<long long>(sleepTime)));
     return sleepTime; // Return the calculated sleep time
@@ -320,4 +316,142 @@ inline double SystemFSM::executeSleep(const std::chrono::duration<double, std::n
   }
 
   return 0.0; // Indicate that no sleep was performed
+}
+
+
+
+// // Logging function
+void SystemFSM::logData(std::ofstream& logFile, double elapsed_time, double actual_pressure, double actual_temperature, double pressure_output, double heater_state, double flow_rate) {
+  std::stringstream s;
+  s << std::fixed << std::setprecision(2) << elapsed_time << ", "
+    << actual_pressure << ", " << actual_temperature << ", "
+    << pressure_output << ", " << heater_state << ", " << flow_rate << "\n";
+    logFile<<s.str();
+}
+
+
+// Read BrewProfiles from JSON file
+std::map<std::string, std::vector<BrewPoint>> SystemFSM::loadBrewProfiles(const std::string& filename) {
+  std::map<std::string, std::vector<BrewPoint>> profiles;
+  Json::Value root;
+  std::ifstream file(filename, std::ifstream::binary);
+  file >> root;
+
+  for (const auto& profile : root["BrewProfile"])
+  {
+    std::string name = profile["name"].asString();
+    std::vector<BrewPoint> points;
+
+    for (const auto& point : profile["points"])
+    {
+      BrewPoint bp;
+      bp.time = point["time"].asDouble();
+      bp.duration = point["duration"].asDouble();
+      bp.pressure = point["pressure"].asDouble();
+      bp.temperature = point["temperature"].asDouble();
+
+      // Parse PID parameters
+      bp.pressurePID.Kp = point["pressurePID"]["Kp"].asDouble();
+      bp.pressurePID.Ki = point["pressurePID"]["Ki"].asDouble();
+      bp.pressurePID.Kd = point["pressurePID"]["Kd"].asDouble();
+      bp.temperaturePID.Kp = point["temperaturePID"]["Kp"].asDouble();
+      bp.temperaturePID.Ki = point["temperaturePID"]["Ki"].asDouble();
+      bp.temperaturePID.Kd = point["temperaturePID"]["Kd"].asDouble();
+
+      points.push_back(bp);
+    }
+
+    profiles[name] = points;
+  }
+  return profiles;
+}
+BrewPoint SystemFSM::getTargetPoint(const std::vector<BrewPoint>& profile, double elapsed_time) {
+    unsigned int currentBrewProfileIndex =sensorState.currentBrewProfileIndex;
+
+    if (currentBrewProfileIndex < profile.size() - 1) {
+        const auto& current = profile[currentBrewProfileIndex];
+        const auto& next = profile[currentBrewProfileIndex + 1];
+        double end_time = current.time + current.duration;
+
+        if (elapsed_time < end_time) {
+            return current;
+        } else if (elapsed_time < next.time) {
+            double ramp_progress = (elapsed_time - end_time) / (next.time - end_time);
+            return {
+                elapsed_time,
+                0.0,
+                current.pressure + ramp_progress * (next.pressure - current.pressure),
+                current.temperature + ramp_progress * (next.temperature - current.temperature),
+                current.pressurePID,
+                current.temperaturePID
+            };
+        }
+
+        // Move to the next index
+        ++currentBrewProfileIndex;
+    }
+
+    return profile.back();
+}
+
+
+BrewState SystemFSM::DoBrew() {
+    // Calculate elapsed time
+    auto now = std::chrono::steady_clock::now();
+    double elapsed_time = sensorState.getTimeSinceBoilerFull();
+    double pwm_elapsed_time = elapsed_time;
+
+    // Get the current target point
+    BrewPoint target = getTargetPoint(selectedProfile, elapsed_time);
+
+    // Temperature control (PID with flow rate compensation)
+    double error_temp = target.temperature - sensorState.temperature;
+    sensorState.integral_temp += error_temp * CONTROL_LOOP_INTERVAL;
+    double derivative_temp = (error_temp - sensorState.prev_error_temp) / CONTROL_LOOP_INTERVAL;
+    double temp_output = target.temperaturePID.Kp * error_temp
+                       + target.temperaturePID.Ki * sensorState.integral_temp
+                       + target.temperaturePID.Kd * derivative_temp
+                       + TEMP_FEEDFORWARD_GAIN * sensorState.consideredFlow;
+
+    // Clamp the output to allowable duty cycle range
+    double pwm_duty_cycle = std::clamp(temp_output / 100.0, MIN_DUTY_CYCLE, MAX_DUTY_CYCLE);
+
+    // PWM logic for heater control
+    if (pwm_elapsed_time >= MAX_DUTY_CYCLE) {
+        sensorState.heater_pwm_start_time = now; // Reset PWM cycle
+        pwm_elapsed_time = 0.0;
+    }
+    sensorState.heater_state = (pwm_elapsed_time < pwm_duty_cycle);
+
+    // Pressure control (PID with flow rate compensation)
+    double error_pressure = target.pressure - sensorState.smoothedPressure;
+    sensorState.integral_pressure += error_pressure * CONTROL_LOOP_INTERVAL;
+    double derivative_pressure = (error_pressure - sensorState.prev_error_pressure) / CONTROL_LOOP_INTERVAL;
+    sensorState.pressure_output = target.pressurePID.Kp * error_pressure
+                                + target.pressurePID.Ki * sensorState.integral_pressure
+                                + target.pressurePID.Kd * derivative_pressure
+                                + PRESSURE_FEEDFORWARD_GAIN * sensorState.consideredFlow;
+
+    // Log data
+    logData(logFile, elapsed_time, sensorState.smoothedPressure, sensorState.temperature, 
+            sensorState.pressure_output, sensorState.heater_state, sensorState.consideredFlow);
+
+    // Update previous errors
+    sensorState.prev_error_temp = error_temp;
+    sensorState.prev_error_pressure = error_pressure;
+
+    // Exit condition: stop after the last point's time and duration
+    double total_duration = selectedProfile.back().time + selectedProfile.back().duration;
+    if (elapsed_time > total_duration) {
+        sensorState.pressure_output = 0;
+        temp_output = 0;
+        return BrewState::Complete;
+    }
+
+    return BrewState::Brew;
+}
+
+
+void SystemFSM::WriteLogHeader() {
+  logFile << "Time(s), Pressure(bar), Temperature(C), Pump Output, Heater State, Flow Rate(mL/s)\n";
 }
