@@ -23,7 +23,7 @@ enum class SystemState
   Exit
 };
 
-enum class BrewState { FillBoiler, WaitingForBoilerFull, Brew, Complete };
+enum class BrewState { FillBoiler, WaitingForBoilerFull, RampToStartTemp, Brew, Complete };
 
 
 struct Iteration
@@ -37,22 +37,6 @@ struct Iteration
   double totalTime_ms = 0.0;
 };
 
-// PID structure to store dynamic parameters
-struct PID
-{
-  double Kp, Ki, Kd;
-};
-
-// BrewPoint structure with ramping and dynamic PID parameters
-struct BrewPoint
-{
-  double time;                 // The specific time to start this state (seconds)
-  double duration;             // Duration to hold this state (seconds)
-  double pressure;             // Desired pressure
-  double temperature;          // Desired temperature
-  PID pressurePID;             // PID parameters for pressure
-  PID temperaturePID;          // PID parameters for temperature
-};
 
 
 class SystemFSM
@@ -77,7 +61,7 @@ private:
   void calcMath();
 
   inline double executeSleep(const std::chrono::duration<double, std::nano>& elapsed);
-  std::map<std::string, std::vector<BrewPoint>> loadBrewProfiles(const std::string& filename);
+  std::map<std::string, BrewProfile> loadBrewProfiles(const std::string& filename);
   inline double calculateTotalTime(
     const std::chrono::time_point<std::chrono::high_resolution_clock>& currStart,
     const std::chrono::time_point<std::chrono::high_resolution_clock>& prevStart);
@@ -87,13 +71,16 @@ private:
   SimpleKalmanFilter smoothConsideredFlow{ 0.1f, 0.1f, 0.1f };
   const std::string brewProfilesFileName = "brew_profiles.json";
   const std::string selectBrewProfile = "Test1";
-  std::map<std::string, std::vector<BrewPoint>> brewProfiles;
-  std::vector<BrewPoint> selectedProfile;
+  std::map<std::string, BrewProfile> brewProfiles;
+  BrewProfile selectedProfile;
   std::ofstream logFile;
-  BrewPoint getTargetPoint(const std::vector<BrewPoint>& profile, double elapsed_time);
+  BrewPoint getTargetPoint(const std::vector<BrewPoint>& POINTS, double elapsed_time);
   BrewState DoBrew();
   void WriteLogHeader();
-  void logData(std::ofstream& logFile, double elapsed_time, double actual_pressure, double actual_temperature, double pressure_output, double heater_state, double flow_rate);
+  // void logData(std::ofstream& logFile, double elapsed_time, double actual_pressure, double actual_temperature, double pressure_output, double heater_state, double flow_rate);
+  void logData(std::ofstream& logFile, double elapsed_time, double actual_pressure, double actual_temperature, 
+                        double pressure_output, double heater_state, double flow_rate, 
+                        double error_temp, double error_pressure, double pwm_duty_cycle);
   // Constants
   // Constants
   static constexpr long MAX_NS_SLEEP = 10000000;      // 10ms in nanoseconds

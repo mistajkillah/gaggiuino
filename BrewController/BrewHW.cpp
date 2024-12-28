@@ -269,11 +269,12 @@ int BrewHW::brewState(void) {
   return digitalRead(brewSENSE_PIN) == LOW; // pin will be low when switch is ON.
 }
 void BrewHW::fillBoiler() {
-  openValve();
+  openValve(); 
   pump.setPumpToRawValue(35);
 }
 void BrewHW::SetPump(double pressure_output)
 {
+  //BLOG_ERROR("\t\tpressure_output %f\n");
   //pump.setPressure(pressure_output,)
   pump.setPumpToRawValue(pressure_output);
 }
@@ -281,17 +282,17 @@ void BrewHW::SetBoiler(bool state)
 {
   if(state)
   {
-      openValve();
+      digitalWrite(boilerRelayCTRL_PIN, HIGH);
   }
   else{
-      closeValve();
+     digitalWrite(boilerRelayCTRL_PIN, LOW);
   }
 }
 void BrewHW::setBoilerOn(void) {
-  openValve();
+  digitalWrite(boilerRelayCTRL_PIN, HIGH);
 }
 void BrewHW::setBoilerOff(void) {
-  closeValve();
+  digitalWrite(boilerRelayCTRL_PIN, LOW);
 }
 
 void BrewHW::stopFillBoiler() {

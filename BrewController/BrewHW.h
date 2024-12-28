@@ -44,19 +44,17 @@ public:
   int brewState(void);
 
   int steamState(void);
+  void openValve(void);
+  void closeValve(void);
 private:
   // Private constructor and destructor
   BrewHW();
   ~BrewHW();
-  SensorState currentState;
-  // Private methods to sample individual sensors
-  std::string sampleSensor1();
-  std::string sampleSensor2();
 
-  // Static method for input callback
-  static void inputCallback(int gpio, int level, uint32_t tick);
 
-void setBoilerOn(void);
+
+
+  void setBoilerOn(void);
   void setBoilerOff(void);
   void setSteamValveRelayOn(void);
   void setSteamValveRelayOff(void);
@@ -64,8 +62,8 @@ void setBoilerOn(void);
   void setSteamBoilerRelayOff(void);
 
   int waterPinState(void);
-  void openValve(void);
-  void closeValve(void);
+
+
   void sensorReadSwitches(void);
   void sensorsReadTemperature(void);
 
