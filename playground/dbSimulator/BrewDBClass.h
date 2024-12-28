@@ -21,7 +21,7 @@ struct SensorState {
     bool scalesPresent;
     bool tarePending;
     float temperature; // °C
-    float waterTemperature; // °C
+    float targetWaterTemperature; // °C
     float pressure; // bar
     float pressureChangeSpeed; // bar/s
     float pumpFlow; // ml/s

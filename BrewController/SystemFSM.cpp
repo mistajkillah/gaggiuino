@@ -223,6 +223,7 @@ inline void SystemFSM::handleBrewing() {
     {
       hw.openValve();
     }
+    BrewDB::getInstance().InsertSensorStateData(sensorState);
     break;
   case BrewState::Complete:
     BLOG_ERROR("Brew Complete\n");

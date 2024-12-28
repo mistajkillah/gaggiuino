@@ -74,45 +74,56 @@ void inputCallback(int gpio, int level, uint32_t tick) {
 }
 
 void ReadADC_Temp() {
-    I2cBusLinux i2c(1, "i2c1");
-    ADS1115 adc(&i2c, "WaterPressure", 0x48);
-    SpiDeviceLinux spiDevice(0, 0, 4000000, 8, 2000, 0, "SpiDevice0.0");
-    MAX6675_TempSensor tempSensor(&spiDevice, "BoilerTemp");
+  I2cBusLinux i2c(1, "i2c1");
+  ADS1115 adc(&i2c, "WaterPressure", 0x48);
+  SpiDeviceLinux spiDevice(0, 0, 4000000, 8, 2000, 0, "SpiDevice0.0");
+  MAX6675_TempSensor tempSensor(&spiDevice, "BoilerTemp");
 
-    adc.begin();
-    adc.setGain(0);
-    adc.setDataRate(4);  // fast
-    adc.setMode(0);      // continuous mode
-
-    for (int mainLoop = 0; mainLoop < 10; mainLoop++) {
-    
-    int16_t val_0 = adc.readADC(0);
-    for(int i=0; i < 4; i++)
-    {
-      int16_t val_0 = adc.getValue();
-      printf("Analog%d: 0x%X  %f\n",i, val_0, adc.toVoltage(val_0) );
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-    }
-            //  int16_t val_0 = adc.readADC(0);
-            //  int16_t val_1 = adc.readADC(1);
-            //  int16_t val_2 = adc.readADC(2);
-            //  int16_t val_3 = adc.readADC(3);
+  adc.begin();
+  adc.setGain(0);
+  adc.setDataRate(4);  // fast
+  adc.setMode(0);      // continuous mode
+  int16_t val_0 = adc.readADC(0);
+  for (int mainLoop = 0; mainLoop < 10; mainLoop++)
+  {
 
 
-            //  printf("Analog0: 0x%X  %f\n", val_0, adc.toVoltage(val_0) );
-            //  printf("Analog1: 0x%X  %f\n", val_1, adc.toVoltage(val_1) );
-            //  printf("Analog2: 0x%X  %f\n", val_2, adc.toVoltage(val_2) );
-            //  printf("Analog3: 0x%X  %f\n", val_3, adc.toVoltage(val_3) );
-            
-    //         printf("value: 0x%X  %f\n", adc.getValue(), 0);
-    //       //  std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    //     //}
+    // for(int i=0; i < 4; i++)
+    // {
+    //   int16_t val_0 = adc.getValue();
+    //   printf("Analog%d: 0x%X  %f\n",i, val_0, adc.toVoltage(val_0) );
 
-         // Read temperature every 250ms
-         printf("Temperature %lf\n", tempSensor.readCelsius());
-         std::this_thread::sleep_for(std::chrono::milliseconds(250));
-     }
+    //   std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // }
+    float max_pressure_bar = 13.79;  // Maximum pressure in bar
+    float min_voltage = 0.5;         // Sensor output at 0 pressure (in volts)
+    float max_voltage = 4.5;         // Sensor output at max pressure (in volts)
+    val_0 = adc.getValue();
+    //printf("Analog%d: 0x%X  %f\n",i, val_0, adc.toVoltage(val_0) );
+  // Calculate pressure in bar
+    float pressure = ((adc.toVoltage(val_0) - min_voltage) / (max_voltage - min_voltage)) * max_pressure_bar;
+    //  int16_t val_0 = adc.readADC(0);
+    //  int16_t val_1 = adc.readADC(1);
+    //  int16_t val_2 = adc.readADC(2);
+    //  int16_t val_3 = adc.readADC(3);
+
+
+    //  printf("Analog0: 0x%X  %f\n", val_0, adc.toVoltage(val_0) );
+    //  printf("Analog1: 0x%X  %f\n", val_1, adc.toVoltage(val_1) );
+    //  printf("Analog2: 0x%X  %f\n", val_2, adc.toVoltage(val_2) );
+    //  printf("Analog3: 0x%X  %f\n", val_3, adc.toVoltage(val_3) );
+
+//         printf("value: 0x%X  %f\n", adc.getValue(), 0);
+//       //  std::this_thread::sleep_for(std::chrono::milliseconds(10));
+//     //}
+
+
+     // Read temperature every 250ms
+     printf("Pressure %f\n", pressure);
+    printf("Temperature %lf\n", tempSensor.readCelsius());
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+  }
 }
 
 // void ReadTemp() {

@@ -38,7 +38,7 @@ SensorState generateFakeSensorState(uint32_t iteration) {
     sensorState.scalesPresent = (randomFloat(0.0f, 1.0f) > 0.5f);
     sensorState.tarePending = (randomFloat(0.0f, 1.0f) > 0.5f);
     sensorState.temperature = randomFloat(0.0f, 100.0f); // Random float within a range
-    sensorState.waterTemperature = randomFloat(0.0f, 120.0f);
+    sensorState.targetWaterTemperature = randomFloat(0.0f, 120.0f);
     sensorState.pressure = randomFloat(0.0f, 12.0f);
     sensorState.pressureChangeSpeed = randomFloat(-10.0f, 10.0f);
     sensorState.pumpFlow = randomFloat(0.0f, 100.0f);
@@ -269,7 +269,7 @@ void BrewDBClass::InsertSensorStateData(const SensorState& data) {
     rc = sqlite3_bind_int(stmt, 9, data.scalesPresent);
     rc = sqlite3_bind_int(stmt, 10, data.tarePending);
     rc = sqlite3_bind_double(stmt, 11, data.temperature);
-    rc = sqlite3_bind_double(stmt, 12, data.waterTemperature);
+    rc = sqlite3_bind_double(stmt, 12, data.targetWaterTemperature);
     rc = sqlite3_bind_double(stmt, 13, data.pressure);
     rc = sqlite3_bind_double(stmt, 14, data.pressureChangeSpeed);
     rc = sqlite3_bind_double(stmt, 15, data.pumpFlow);
