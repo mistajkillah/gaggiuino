@@ -21,7 +21,7 @@ float randomFloat(float min, float max) {
 
 
 BrewDB::BrewDB() {
-  int rc = sqlite3_open("/tmp/mydb.sqlite", &db);
+  int rc = sqlite3_open("mydb.sqlite", &db);
 
   if (rc)
   {
@@ -132,7 +132,7 @@ void BrewDB::InsertSensorStateData(const SensorState& data) {
                                 "target_pressurePID_Kp, target_pressurePID_Ki, target_pressurePID_Kd, "
                                 "target_temperaturePID_Kp, target_temperaturePID_Ki, target_temperaturePID_Kd, "
                                 "StartBrewingwithValveOpen) "
-                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         sqlite3_stmt* stmt;
         int rc = sqlite3_prepare_v2(db, insertSQL, -1, &stmt, nullptr);
@@ -239,8 +239,8 @@ void BrewDB::SimulatorThread() {
 }
 
 // int main() {
-//     system("rm -rf rm /tmp/mydb.sqlite");
-//     BrewDBClass& brewDB = BrewDBClass::getInstance();
+//     system("rm -rf rm mydb.sqlite");
+//     BrewDB& brewDB = BrewDB::getInstance();
 
 //     // Initialize the database and tables
 //     brewDB.Initialize();
@@ -258,6 +258,11 @@ void BrewDB::SimulatorThread() {
 
 //     return 0;
 // }
+void BrewDB::StartSimulator() {
+    std::thread simulator(&BrewDB::SimulatorThread, this);
+    simulator.detach();
+}
+
 
 // Function to generate random float values within a given range
 float BrewDB::randomFloat(float min, float max) {

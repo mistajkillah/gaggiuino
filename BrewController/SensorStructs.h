@@ -123,7 +123,7 @@ static inline std::string timePointToString(const std::chrono::steady_clock::tim
     double prev_error_pressure = 0.0;
 
     // Brew control state
-    bool StartBrewingwithValveOpen = true;
+    bool StartBrewingwithValveOpen = false;
 
     // Utility methods for time and updates
     void inline setTimeSinceSystemStart() {
