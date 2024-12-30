@@ -1,152 +1,84 @@
-from flask import Flask, jsonify, render_template_string
+from flask import Flask, jsonify, render_template, request
 import sqlite3
 
-# Flask App
 app = Flask(__name__)
 
-# SQLite Database Path
+# Default database path
 DB_PATH = "mydb.sqlite"
 
-# Query to fetch data from the SensorState table
-QUERY = """
+DEFAULT_QUERY = """
 SELECT iteration, smoothedPressure, temperature, target_pressure, target_temperature
 FROM SensorState;
 """
 
-# Fetch data from the SQLite database
-def fetch_data():
-    try:
-        print("Connecting to database...")
-        connection = sqlite3.connect(DB_PATH)
-        cursor = connection.cursor()
-        print("Executing query...")
-        cursor.execute(QUERY)
-        rows = cursor.fetchall()
-        cursor.close()
-        connection.close()
-        print(f"Fetched rows: {rows}")
+# Default axis values
+time_interval_ms = 10
+pres_y_min = 0
+pres_y_max = 15
+temp_y_min = 50
+temp_y_max = 120
 
-        if not rows:
-            print("No data found in the SensorState table.")
+# Function to fetch data from SQLite with dynamic columns
+def fetch_data(columns):
+    if not columns:
+        return {"error": "No columns specified"}, 400
 
-        # Parse data into a usable format for the frontend
-        data = {
-            'x': [],  # IterationNumber
-            'pressure': [],
-            'temperature': [],
-            'target_pressure': [],
-            'target_temperature': []
-        }
-        for row in rows:
-            data['x'].append(row[0])
-            data['pressure'].append(row[1])
-            data['temperature'].append(row[2])
-            data['target_pressure'].append(row[3])
-            data['target_temperature'].append(row[4])
+    column_list = ', '.join(columns)
+    query = f"SELECT iteration, {column_list} FROM SensorState;"
+    
+    connection = sqlite3.connect(DB_PATH)
+    cursor = connection.cursor()
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    cursor.close()
+    connection.close()
 
-        return data
-    except sqlite3.Error as e:
-        print(f"Database error: {e}")
-        return None
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return None
+    data = {'x': []}
+    for col in columns:
+        data[col] = []
 
-# API route to serve the data
-@app.route('/data')
-def get_data():
-    print("Fetching data from API route...")
-    data = fetch_data()
-    if data is None:
-        return jsonify({"error": "Failed to fetch data from the database."}), 500
-    return jsonify(data)
+    for row in rows:
+        data['x'].append(row[0])  # iteration column
+        for idx, col in enumerate(columns):
+            data[col].append(row[idx + 1])
 
-# Root route to serve the graph
+    return data
+
+# Function to fetch column names from the database
+def get_columns():
+    connection = sqlite3.connect(DB_PATH)
+    cursor = connection.cursor()
+    cursor.execute("PRAGMA table_info(SensorState);")
+    columns = [row[1] for row in cursor.fetchall()]
+    cursor.close()
+    connection.close()
+    return columns
+
 @app.route('/')
 def index():
-    # Inline HTML template
-    html_template = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>BrewView</title>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    </head>
-    <body>
-        <h2>SensorState Data</h2>
-        <canvas id="myChart" width="800" height="400"></canvas>
-        <script>
-            // Fetch data from the server
-            fetch('/data')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch data from the server.");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    const ctx = document.getElementById('myChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'line',  // Line graph
-                        data: {
-                            labels: data.x, // IterationNumber as X-axis
-                            datasets: [
-                                {
-                                    label: 'Pressure',
-                                    data: data.pressure,
-                                    borderColor: 'rgba(255, 99, 132, 1)',
-                                    borderWidth: 1,
-                                    pointRadius: 0
-                                },
-                                {
-                                    label: 'Temperature',
-                                    data: data.temperature,
-                                    borderColor: 'rgba(54, 162, 235, 1)',
-                                    borderWidth: 1,
-                                    pointRadius: 0
-                                },
-                                {
-                                    label: 'Target Pressure',
-                                    data: data.target_pressure,
-                                    borderColor: 'rgba(75, 192, 192, 1)',
-                                    borderWidth: 1,
-                                    pointRadius: 0
-                                },
-                                {
-                                    label: 'Target Temperature',
-                                    data: data.target_temperature,
-                                    borderColor: 'rgba(153, 102, 255, 1)',
-                                    borderWidth: 1,
-                                    pointRadius: 0
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                tooltip: { enabled: true },
-                                legend: { display: true },
-                            },
-                            scales: {
-                                x: {
-                                    type: 'linear',
-                                    position: 'bottom',
-                                    ticks: { autoSkip: true, maxTicksLimit: 10 }
-                                }
-                            }
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error("Error loading data:", error);
-                    alert("Failed to load data. Check the console for details.");
-                });
-        </script>
-    </body>
-    </html>
-    """
-    return render_template_string(html_template)
+    return render_template(
+        'index.html',
+        time_interval_ms=time_interval_ms,
+        pres_y_min=pres_y_min,
+        pres_y_max=pres_y_max,
+        temp_y_min=temp_y_min,
+        temp_y_max=temp_y_max
+    )
 
-# Run the Flask app
+@app.route('/default-data')
+def default_data():
+    columns = request.args.get('columns', '').split(',')
+    if not columns or columns == ['']:
+        # Default columns if none are specified
+        columns = ["smoothedPressure", "temperature", "target_pressure", "target_temperature"]
+    data = fetch_data(columns)
+    data['table_name'] = "SensorState"  # Add table name to response
+    return jsonify(data)
+
+@app.route('/columns')
+def columns():
+    columns = get_columns()
+    return jsonify(columns)
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)

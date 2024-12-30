@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrewView</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        button {
+            background-color: #3c3c3c;
+            color: #d4d4d4;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #5a5a5a;
+        }
+        #BrewViewChart {
+            width: 100%;
+            height: 600px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Brew View</h1>
+    <p>Use the buttons below to add or remove data from the chart.</p>
+    <select id="addColumnDropdown"></select>
+    <button id="addColumn">Add Variable</button>
+    <div id="BrewViewChart"></div>
+
+    <!-- Flask injects variables here -->
+    <script>
+        const time_interval_ms = {{ time_interval_ms }};
+        const pres_y_min = {{ pres_y_min }};
+        const pres_y_max = {{ pres_y_max }};
+        const temp_y_min = {{ temp_y_min }};
+        const temp_y_max = {{ temp_y_max }};
+    </script>
+    <script src="/static/main.js"></script>
+</body>
+</html>
